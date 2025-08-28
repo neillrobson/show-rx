@@ -20,8 +20,9 @@ let canvas;
 let logDiv;
 /** @type {Record<string, DrawingSymbol>} */
 let drawingSymbolMap;
-let p = ["A", "B"];
-let f = p.length - 1;
+/** @type {string[]} */
+let lineHeadings = ["A", "B"];
+let lineCount = lineHeadings.length - 1;
 let T = !1;
 const y = [...ShapeRepository.getRegisteredShapeNames()];
 let x = 0,
@@ -162,7 +163,7 @@ function N(e) {
             ctx.stroke(),
             ctx.closePath();
         })(t, o),
-      e.lineNr < f &&
+      e.lineNr < lineCount &&
         (function (e, t) {
           b.DEBUG &&
             S(
@@ -172,7 +173,7 @@ function N(e) {
             );
           ctx.beginPath(),
             ctx.moveTo(e, t),
-            ctx.lineTo(e, b.marginVertical + f * b.blockHeight),
+            ctx.lineTo(e, b.marginVertical + lineCount * b.blockHeight),
             (ctx.strokeStyle = b.guidelineColor),
             (ctx.lineWidth = 1),
             ctx.setLineDash([3, 3]),
@@ -217,18 +218,19 @@ function H(e) {
   if (!canvas) return;
   b.autoExpandCanvasWidth &&
     (canvas.width = window.innerWidth - 3 * b.marginHorizontal),
-    (canvas.height = (p.length - 1) * b.blockHeight + 2 * b.marginVertical),
+    (canvas.height =
+      (lineHeadings.length - 1) * b.blockHeight + 2 * b.marginVertical),
     (ctx = canvas.getContext("2d")),
     (canvas.width = canvas.width),
     (ctx.font = b.font);
-  const t = f + 1;
+  const t = lineCount + 1;
   ctx.beginPath();
   for (let e = 0; e < t; e++) {
     const t = b.marginVertical + e * b.blockHeight;
     ctx.moveTo(b.headerWidth, t),
       ctx.lineTo(canvas.width - b.marginHorizontal, t),
       ctx.stroke(),
-      ctx.fillText(p[e] || "", b.marginHorizontal, t);
+      ctx.fillText(lineHeadings[e] || "", b.marginHorizontal, t);
   }
   ctx.closePath(),
     ctx.fillText("RxJsVisualizer@1.3.6", canvas.width - 130, canvas.height - 4),
@@ -266,7 +268,7 @@ function U(e) {
   return [b.headerWidth + b.marginHorizontal + t * o, t];
 }
 function V() {
-  return b.marginVertical + f * b.blockHeight + 0.4 * b.marginVertical;
+  return b.marginVertical + lineCount * b.blockHeight + 0.4 * b.marginVertical;
 }
 function R(e) {
   const [t] = U(e);
@@ -342,9 +344,9 @@ function F(e, t, o, n = 0, i = 0) {
     ctx.fillText(e, t + n, canvas.height - i);
 }
 function _(e, t, o = !1, n) {
-  if (e > f) {
-    const t = `** RxVis **:lineNr ${e} not valid - only ${f} line${
-      f > 1 ? "s" : ""
+  if (e > lineCount) {
+    const t = `** RxVis **:lineNr ${e} not valid - only ${lineCount} line${
+      lineCount > 1 ? "s" : ""
     } configured`;
     throw (E(t), t);
   }
@@ -362,12 +364,12 @@ function _(e, t, o = !1, n) {
       error: (o) => {
         E(`Error ${t}`),
           N({ text: "Error;red", lineNr: e, atEnd: !0 }),
-          e === f && (T = !0);
+          e === lineCount && (T = !0);
       },
       complete: () => {
         S(`Completed ${t}`),
           N({ text: "Complete;orange", lineNr: e, atEnd: !0 }),
-          e === f && (T = !0);
+          e === lineCount && (T = !0);
       },
     }
   );
@@ -375,7 +377,7 @@ function _(e, t, o = !1, n) {
 const J = {};
 function q(e, t = null, o = !1, n) {
   return (
-    null === t && p[e] && (t = p[e]),
+    null === t && lineHeadings[e] && (t = lineHeadings[e]),
     null === t && (t = ""),
     (i) => (i.subscribe(_(e, t, o, n)), i)
   );
@@ -532,7 +534,7 @@ export default {
   },
   rnd: I,
   prepareCanvas: function (e) {
-    (p = e), (f = p.length - 1), H(!1);
+    (lineHeadings = e), (lineCount = lineHeadings.length - 1), H(!1);
   },
   writeToLine: function (e, t) {
     S(t), N({ text: t, lineNr: e, atEnd: !0 });
