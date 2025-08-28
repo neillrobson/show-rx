@@ -373,7 +373,7 @@ function F(e, t, o, n = 0, i = 0) {
     ctx.stroke(),
     ctx.fillText(e, t + n, canvas.height - i);
 }
-function _(e, t, o = !1, n) {
+function observerForLine(e, t, o = !1, n) {
   if (e > lineCount) {
     const t = `** RxVis **:lineNr ${e} not valid - only ${lineCount} line${
       lineCount > 1 ? "s" : ""
@@ -404,15 +404,15 @@ function _(e, t, o = !1, n) {
     }
   );
 }
-const J = {};
-function q(e, t = null, o = !1, n) {
+const operators = {};
+function draw(e, t = null, o = !1, n) {
   return (
     null === t && lineHeadings[e] && (t = lineHeadings[e]),
     null === t && (t = ""),
-    (i) => (i.subscribe(_(e, t, o, n)), i)
+    (i) => (i.subscribe(observerForLine(e, t, o, n)), i)
   );
 }
-J.draw = q;
+operators.draw = draw;
 class DrawingSymbol {
   constructor(e) {
     (this.options = {
@@ -568,7 +568,7 @@ export default {
       e.asObservable()
     );
   },
-  observerForLine: _,
+  observerForLine,
   startVisualize: function () {
     logDiv && (logDiv.innerHTML = ""),
       (now = new Date()),
@@ -597,7 +597,7 @@ export default {
         });
       });
   },
-  operators: J,
+  operators,
   DrawingSymbol,
-  draw: q,
+  draw,
 };
