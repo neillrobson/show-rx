@@ -103,7 +103,7 @@ function writeDivLog(msg, extraClass) {
   item.appendChild(clockEl), item.appendChild(msgEl), logDiv.appendChild(item);
 }
 
-const I = (e, t) => e + Math.floor(Math.random() * (t - e + 1)),
+const rnd = (min, max) => min + Math.floor(Math.random() * (max - min + 1)),
   D = {};
 let W = [],
   L = [];
@@ -529,9 +529,9 @@ export default {
     return (
       t || (t = e.length),
       o.range(0, t).pipe(
-        r((t) => I(0, e.length - 1)),
+        r((t) => rnd(0, e.length - 1)),
         r((t) => e[t]),
-        i((e) => o.of(e).pipe(s(I(n, l)))),
+        i((e) => o.of(e).pipe(s(rnd(n, l)))),
         a()
       )
     );
@@ -539,7 +539,7 @@ export default {
   createStreamFromArraySequence: function (e, t = 500, n = 2e3) {
     return o.range(0, e.length).pipe(
       r((t) => e[t]),
-      i((e) => o.of(e).pipe(s(I(t, n)))),
+      i((e) => o.of(e).pipe(s(rnd(t, n)))),
       a()
     );
   },
@@ -548,7 +548,7 @@ export default {
     return (
       document
         .getElementById(t)
-        .addEventListener("click", (t) => r.next(e[I(0, e.length - 1)])),
+        .addEventListener("click", (t) => r.next(e[rnd(0, e.length - 1)])),
       document.getElementById(o).addEventListener("click", (e) => r.complete()),
       document.getElementById(i) &&
         document
@@ -577,7 +577,7 @@ export default {
       H(!0),
       (W = []);
   },
-  rnd: I,
+  rnd,
   prepareCanvas: function (e) {
     (lineHeadings = e), (lineCount = lineHeadings.length - 1), H(!1);
   },
@@ -598,6 +598,6 @@ export default {
       });
   },
   operators: J,
-  DrawingSymbol: DrawingSymbol,
+  DrawingSymbol,
   draw: q,
 };
