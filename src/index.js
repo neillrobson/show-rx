@@ -15,12 +15,13 @@ let now;
 /** @type {CanvasRenderingContext2D} */
 let ctx;
 /** @type {HTMLCanvasElement} */
-let canvas,
-  m,
-  u,
-  p = ["A", "B"],
-  f = p.length - 1,
-  T = !1;
+let canvas;
+/** @type {HTMLElement} */
+let logDiv;
+let u;
+let p = ["A", "B"];
+let f = p.length - 1;
+let T = !1;
 const y = [...ShapeRepository.getRegisteredShapeNames()];
 let x = 0,
   b = {
@@ -79,7 +80,7 @@ const S = (e, t) => {
     console.error(t), v(e, "error");
   };
 function v(e, t) {
-  if (!m) return;
+  if (!logDiv) return;
   const o = document.createElement("span");
   (o.innerHTML = k()), o.classList.add("clock");
   const n = document.createElement("span");
@@ -91,7 +92,7 @@ function v(e, t) {
     n.classList.add("msg"),
     t && n.classList.add(t);
   const i = document.createElement("div");
-  i.appendChild(o), i.appendChild(n), m.appendChild(i);
+  i.appendChild(o), i.appendChild(n), logDiv.appendChild(i);
 }
 const I = (e, t) => e + Math.floor(Math.random() * (t - e + 1)),
   D = {};
@@ -416,8 +417,9 @@ export default {
             `--- Cannot visualize - canvas with id '${e.canvasId}' not found ---`
           ),
           E("-------------------------------------------------------------")),
-        void 0 !== typeof document && (m = document.getElementById(e.logDivId)),
-        m ||
+        void 0 !== typeof document &&
+          (logDiv = document.getElementById(e.logDivId)),
+        logDiv ||
           (E("-------------------------------------------------------------"),
           E(`--- Cannot show logs - div with id '${e.logDivId}' not found ---`),
           E("-------------------------------------------------------------"));
@@ -512,7 +514,7 @@ export default {
   },
   observerForLine: _,
   startVisualize: function () {
-    m && (m.innerHTML = ""),
+    logDiv && (logDiv.innerHTML = ""),
       (now = new Date()),
       (O = new Date().getSeconds()),
       (T = !1),
