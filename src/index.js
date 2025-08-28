@@ -24,40 +24,40 @@ let drawingSymbolMap;
 let lineHeadings = ["A", "B"];
 let lineCount = lineHeadings.length - 1;
 let T = !1;
-const y = [...ShapeRepository.getRegisteredShapeNames()];
-let x = 0,
-  b = {
-    headerWidth: 50,
-    marginHorizontal: 5,
-    marginVertical: 40,
-    blockHeight: 50,
-    shapeSize: 20,
-    centerShapes: !1,
-    autoExpandCanvasWidth: !1,
-    font: "italic 12px sans-serif",
-    colors: [
-      "white",
-      "black",
-      "red",
-      "blue",
-      "green",
-      "cyan",
-      "violet",
-      "yellow",
-      "darkgray",
-    ],
-    canvasId: "canvas",
-    logDivId: "logs",
-    maxPeriod: 1e4,
-    tickPeriod: 1e3,
-    symbolMap: {},
-    guidelineColor: "gray",
-    tickColor: "black",
-    showTimeTicks: !0,
-    addNavigationButtons: !1,
-    maxLogLength: -1,
-    DEBUG: !1,
-  };
+const shapes = [...ShapeRepository.getRegisteredShapeNames()];
+let x = 0;
+let config = {
+  headerWidth: 50,
+  marginHorizontal: 5,
+  marginVertical: 40,
+  blockHeight: 50,
+  shapeSize: 20,
+  centerShapes: !1,
+  autoExpandCanvasWidth: !1,
+  font: "italic 12px sans-serif",
+  colors: [
+    "white",
+    "black",
+    "red",
+    "blue",
+    "green",
+    "cyan",
+    "violet",
+    "yellow",
+    "darkgray",
+  ],
+  canvasId: "canvas",
+  logDivId: "logs",
+  maxPeriod: 1e4,
+  tickPeriod: 1e3,
+  symbolMap: {},
+  guidelineColor: "gray",
+  tickColor: "black",
+  showTimeTicks: !0,
+  addNavigationButtons: !1,
+  maxLogLength: -1,
+  DEBUG: !1,
+};
 function k() {
   return $(new Date());
 }
@@ -86,9 +86,9 @@ function v(e, t) {
   const o = document.createElement("span");
   (o.innerHTML = k()), o.classList.add("clock");
   const n = document.createElement("span");
-  b.maxLogLength > 0 &&
-    e.length > b.maxLogLength &&
-    (e = `${e.substring(0, b.maxLogLength)}...`),
+  config.maxLogLength > 0 &&
+    e.length > config.maxLogLength &&
+    (e = `${e.substring(0, config.maxLogLength)}...`),
     (n.innerHTML = e),
     (n.style.whiteSpace = "pre"),
     n.classList.add("msg"),
@@ -101,22 +101,23 @@ const I = (e, t) => e + Math.floor(Math.random() * (t - e + 1)),
 let W = [],
   L = [];
 function P(e, t) {
-  const o = b.maxPeriod;
+  const o = config.maxPeriod;
   t || (t = new Date());
   const n = (t - now) / o,
-    i = canvas.width - b.headerWidth - 2 * b.marginHorizontal;
+    i = canvas.width - config.headerWidth - 2 * config.marginHorizontal;
   return [
-    b.headerWidth + b.marginHorizontal + n * i,
-    b.marginVertical + e * b.blockHeight,
+    config.headerWidth + config.marginHorizontal + n * i,
+    config.marginVertical + e * config.blockHeight,
   ];
 }
 const j = { atEnd: !1, shouldIgnoreSymbols: !1 };
 function B(e) {
-  (e = { ...j, ...e }), b.DEBUG && S(`drawObject ${JSON.stringify(e.obj)}`);
+  (e = { ...j, ...e }),
+    config.DEBUG && S(`drawObject ${JSON.stringify(e.obj)}`);
   const t = e.obj && "Array" === e.obj.__proto__.constructor.name,
     o = "boolean" == typeof e.obj,
     n = isFinite(e.obj) && !o;
-  if ((b.DEBUG && S(`  isArray=${t}, isNumber=${n}, isBoolean=${o}`), t))
+  if ((config.DEBUG && S(`  isArray=${t}, isNumber=${n}, isBoolean=${o}`), t))
     return (
       e.obj.forEach((t) => {
         (e.obj = `${t}`), B(e), D[e.lineNr]++;
@@ -135,11 +136,11 @@ function N(e) {
   (e = { ...j, ...e }).time || (e.time = new Date());
   let [t, o] = P(e.lineNr, e.time);
   W.push(e),
-    t <= b.headerWidth ||
+    t <= config.headerWidth ||
       (D[e.lineNr] > 0 && (t += D[e.lineNr] * Shape.w),
       (e.x = t),
       (e.y = o),
-      b.DEBUG &&
+      config.DEBUG &&
         S(`drawText ${e.text} at lineNr ${e.lineNr} --\x3e [${t}/${o}]`),
       C(e),
       e.text.startsWith("Error") && z(t, o, "red"),
@@ -148,33 +149,36 @@ function N(e) {
         e.text.startsWith("Error") ||
         0 !== D[e.lineNr] ||
         (function (e, t) {
-          b.DEBUG &&
+          config.DEBUG &&
             S(
               `line ${e}/${t} --\x3e ${e}/${
-                b.marginVertical + 2 * b.blockHeight
+                config.marginVertical + 2 * config.blockHeight
               }`
             );
           const o = 6;
           ctx.beginPath(),
             ctx.moveTo(e, t - o),
             ctx.lineTo(e, t + o),
-            (ctx.strokeStyle = b.tickColor),
+            (ctx.strokeStyle = config.tickColor),
             (ctx.lineWidth = 1),
             ctx.stroke(),
             ctx.closePath();
         })(t, o),
       e.lineNr < lineCount &&
         (function (e, t) {
-          b.DEBUG &&
+          config.DEBUG &&
             S(
               `line ${e}/${t} --\x3e ${e}/${
-                b.marginVertical + 2 * b.blockHeight
+                config.marginVertical + 2 * config.blockHeight
               }`
             );
           ctx.beginPath(),
             ctx.moveTo(e, t),
-            ctx.lineTo(e, b.marginVertical + lineCount * b.blockHeight),
-            (ctx.strokeStyle = b.guidelineColor),
+            ctx.lineTo(
+              e,
+              config.marginVertical + lineCount * config.blockHeight
+            ),
+            (ctx.strokeStyle = config.guidelineColor),
             (ctx.lineWidth = 1),
             ctx.setLineDash([3, 3]),
             ctx.stroke(),
@@ -188,9 +192,15 @@ function C(e) {
     : drawingSymbolMap[e.text];
   if ((t || (t = new DrawingSymbol({ text: e.text })), t.useImage)) {
     const o = new Image(),
-      n = b.centerShapes ? e.x - b.shapeSize / 2 : e.x;
+      n = config.centerShapes ? e.x - config.shapeSize / 2 : e.x;
     (o.onload = (t) =>
-      ctx.drawImage(o, n, e.y - b.shapeSize - 1, b.shapeSize, b.shapeSize)),
+      ctx.drawImage(
+        o,
+        n,
+        e.y - config.shapeSize - 1,
+        config.shapeSize,
+        config.shapeSize
+      )),
       (o.src = t.imageUrl);
   } else if (t.useText) {
     const o = ctx.fillStyle;
@@ -199,13 +209,17 @@ function C(e) {
       (ctx.fillStyle = o);
   } else {
     const o = ShapeRepository.get(t.shape),
-      n = b.centerShapes ? e.x - b.shapeSize / 2 : e.x;
+      n = config.centerShapes ? e.x - config.shapeSize / 2 : e.x;
     o && o.draw(ctx, n, e.y, t.color, t.strokeOnly);
   }
 }
 function z(e, t, o) {
-  b.DEBUG &&
-    S(`line ${e}/${t} --\x3e ${e}/${b.marginVertical + 2 * b.blockHeight}`),
+  config.DEBUG &&
+    S(
+      `line ${e}/${t} --\x3e ${e}/${
+        config.marginVertical + 2 * config.blockHeight
+      }`
+    ),
     ctx.beginPath(),
     ctx.moveTo(e, t),
     ctx.lineTo(e, t + 17),
@@ -216,25 +230,26 @@ function z(e, t, o) {
 }
 function H(e) {
   if (!canvas) return;
-  b.autoExpandCanvasWidth &&
-    (canvas.width = window.innerWidth - 3 * b.marginHorizontal),
+  config.autoExpandCanvasWidth &&
+    (canvas.width = window.innerWidth - 3 * config.marginHorizontal),
     (canvas.height =
-      (lineHeadings.length - 1) * b.blockHeight + 2 * b.marginVertical),
+      (lineHeadings.length - 1) * config.blockHeight +
+      2 * config.marginVertical),
     (ctx = canvas.getContext("2d")),
     (canvas.width = canvas.width),
-    (ctx.font = b.font);
+    (ctx.font = config.font);
   const t = lineCount + 1;
   ctx.beginPath();
   for (let e = 0; e < t; e++) {
-    const t = b.marginVertical + e * b.blockHeight;
-    ctx.moveTo(b.headerWidth, t),
-      ctx.lineTo(canvas.width - b.marginHorizontal, t),
+    const t = config.marginVertical + e * config.blockHeight;
+    ctx.moveTo(config.headerWidth, t),
+      ctx.lineTo(canvas.width - config.marginHorizontal, t),
       ctx.stroke(),
-      ctx.fillText(lineHeadings[e] || "", b.marginHorizontal, t);
+      ctx.fillText(lineHeadings[e] || "", config.marginHorizontal, t);
   }
   ctx.closePath(),
     ctx.fillText("RxJsVisualizer@1.3.6", canvas.width - 130, canvas.height - 4),
-    b.addNavigationButtons && A(),
+    config.addNavigationButtons && A(),
     e &&
       (function () {
         const e = 50,
@@ -244,18 +259,19 @@ function H(e) {
               r = ctx.lineWidth;
             if (
               (ctx.beginPath(),
-              ctx.moveTo(b.headerWidth, o),
+              ctx.moveTo(config.headerWidth, o),
               (ctx.strokeStyle = "orange"),
               (ctx.lineWidth = 2),
               ctx.lineTo(n, o),
               ctx.stroke(),
               ctx.closePath(),
               (ctx.lineWidth = r),
-              b.showTimeTicks)
+              config.showTimeTicks)
             ) {
               let e = new Date().getSeconds();
               e < O && (e += 60),
-                e >= O + b.tickPeriod / 1e3 && ((O = e % 60), R(new Date()));
+                e >= O + config.tickPeriod / 1e3 &&
+                  ((O = e % 60), R(new Date()));
             }
             T && t.unsubscribe(), i >= 0.995 && G && M(1e3);
           });
@@ -263,16 +279,20 @@ function H(e) {
 }
 let O = -1;
 function U(e) {
-  const t = (e - now) / b.maxPeriod,
-    o = canvas.width - b.headerWidth - 2 * b.marginHorizontal;
-  return [b.headerWidth + b.marginHorizontal + t * o, t];
+  const t = (e - now) / config.maxPeriod,
+    o = canvas.width - config.headerWidth - 2 * config.marginHorizontal;
+  return [config.headerWidth + config.marginHorizontal + t * o, t];
 }
 function V() {
-  return b.marginVertical + lineCount * b.blockHeight + 0.4 * b.marginVertical;
+  return (
+    config.marginVertical +
+    lineCount * config.blockHeight +
+    0.4 * config.marginVertical
+  );
 }
 function R(e) {
   const [t] = U(e);
-  if ((L.push(e), t <= b.headerWidth)) return;
+  if ((L.push(e), t <= config.headerWidth)) return;
   ctx.font = "italic 9px sans-serif";
   const o = $(e).substr(3, 5);
   ctx.fillText(o, t - 12, V() + 9);
@@ -286,7 +306,7 @@ function R(e) {
     ctx.stroke(),
     ctx.closePath(),
     (ctx.lineWidth = i),
-    (ctx.font = b.font);
+    (ctx.font = config.font);
 }
 function M(e) {
   (now = new Date(now.getTime() + e)), H(!1);
@@ -323,12 +343,12 @@ function A() {
       n < canvas.height - 1 - e ||
         o > 52 ||
         (o < e
-          ? (b.DEBUG && console.log("   back"), M(-1e3))
+          ? (config.DEBUG && console.log("   back"), M(-1e3))
           : o < 34
           ? ((G = !G),
-            b.DEBUG && console.log(`   toggleScrolling to ${G}`),
+            config.DEBUG && console.log(`   toggleScrolling to ${G}`),
             A())
-          : (b.DEBUG && console.log("   forth"), M(1e3)));
+          : (config.DEBUG && console.log("   forth"), M(1e3)));
     });
 }
 function F(e, t, o, n = 0, i = 0) {
@@ -437,25 +457,28 @@ export default {
       S("**********************************************", "color:blue"),
       Object.keys(e)
         .filter((t) => e.hasOwnProperty(t))
-        .filter((e) => !b.hasOwnProperty(e))
+        .filter((e) => !config.hasOwnProperty(e))
         .forEach((e) =>
           E(`*** RxVis ***: Unknown option '${e}' will be ignored!`)
         ),
-      (b = { ...b, ...e }),
-      b.DEBUG &&
-        Object.keys(b)
-          .filter((e) => b.hasOwnProperty(e))
-          .forEach((e) => S(`RxVis '${e}' --\x3e ${b[e]}`)),
-      (Shape.width = b.shapeSize),
+      (config = { ...config, ...e }),
+      config.DEBUG &&
+        Object.keys(config)
+          .filter((e) => config.hasOwnProperty(e))
+          .forEach((e) => S(`RxVis '${e}' --\x3e ${config[e]}`)),
+      (Shape.width = config.shapeSize),
       S(
         `init with canvasId '${e.canvasId}' and logDivId '${e.logDivId}'`,
         "color:orange"
       ),
-      S(`shapes: ${JSON.stringify(y)}`, "color:orange"),
-      S(`colors: ${JSON.stringify(b.colors)}`, "color:orange"),
-      b.maxLogLength > 0 &&
-        S(`limit log strings to ${b.maxLogLength} characters`, "color:orange"),
-      (drawingSymbolMap = { ...b.symbolMap }),
+      S(`shapes: ${JSON.stringify(shapes)}`, "color:orange"),
+      S(`colors: ${JSON.stringify(config.colors)}`, "color:orange"),
+      config.maxLogLength > 0 &&
+        S(
+          `limit log strings to ${config.maxLogLength} characters`,
+          "color:orange"
+        ),
+      (drawingSymbolMap = { ...config.symbolMap }),
       (drawingSymbolMap["Error;red"] = new DrawingSymbol({
         text: "Error",
         color: "red",
@@ -471,12 +494,12 @@ export default {
           const [e, t] = P(0),
             [, o] = P(1);
           let n = e;
-          y.forEach((e, i) => {
-            const r = b.colors[i % b.colors.length];
+          shapes.forEach((e, i) => {
+            const r = config.colors[i % config.colors.length];
             ShapeRepository.get(e).draw(ctx, n, t, r),
               C({ text: e, x: n, y: t, atEnd: !0, shouldIgnoreSymbols: !0 }),
               ShapeRepository.get(e).draw(ctx, n, o, r, !0),
-              (n += 3 * b.shapeSize);
+              (n += 3 * config.shapeSize);
           });
         })());
   },
@@ -547,8 +570,8 @@ export default {
       [...Array(e).keys()].forEach((e) => {
         drawingSymbolMap[`${e}`] = new DrawingSymbol({
           text: `${e}`,
-          color: b.colors[e % b.colors.length],
-          shape: y[e % y.length],
+          color: config.colors[e % config.colors.length],
+          shape: shapes[e % shapes.length],
         });
       });
   },
