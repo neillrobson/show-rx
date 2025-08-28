@@ -58,19 +58,23 @@ let config = {
   maxLogLength: -1,
   DEBUG: !1,
 };
-function k() {
-  return $(new Date());
+function nowStr() {
+  return stringify(new Date());
 }
-function $(e) {
-  const t = [e.getHours(), e.getMinutes(), e.getSeconds()]
+/**
+ * @param {Date} date
+ * @returns {string}
+ */
+function stringify(date) {
+  const t = [date.getHours(), date.getMinutes(), date.getSeconds()]
     .map((e) => (e < 10 ? `0${e}` : `${e}`))
     .join(":");
-  let o = `${e.getMilliseconds()}`;
-  return (o = `.${"0".repeat(3 - o.length)}${o}`), `${t}${o}`;
+  let ms = `${date.getMilliseconds()}`;
+  return (ms = `.${"0".repeat(3 - ms.length)}${ms}`), `${t}${ms}`;
 }
 const S = (e, t) => {
     console.log(
-      `%c${k()}%c ${e}`,
+      `%c${nowStr()}%c ${e}`,
       "color:black;background:skyblue;font-style:italic",
       t
     );
@@ -78,13 +82,13 @@ const S = (e, t) => {
     v(e, o);
   },
   E = (e) => {
-    const t = `${k()}: ${e}`;
+    const t = `${nowStr()}: ${e}`;
     console.error(t), v(e, "error");
   };
 function v(e, t) {
   if (!logDiv) return;
   const o = document.createElement("span");
-  (o.innerHTML = k()), o.classList.add("clock");
+  (o.innerHTML = nowStr()), o.classList.add("clock");
   const n = document.createElement("span");
   config.maxLogLength > 0 &&
     e.length > config.maxLogLength &&
@@ -294,7 +298,7 @@ function R(e) {
   const [t] = U(e);
   if ((L.push(e), t <= config.headerWidth)) return;
   ctx.font = "italic 9px sans-serif";
-  const o = $(e).substr(3, 5);
+  const o = stringify(e).substr(3, 5);
   ctx.fillText(o, t - 12, V() + 9);
   const n = V(),
     i = ctx.lineWidth;
