@@ -11,7 +11,7 @@ class ShapeRepository {
   static register(e, t) {
     ShapeRepository.flyweights || (ShapeRepository.flyweights = new Map()),
       !ShapeRepository.flyweights.has(e) &&
-        t instanceof d &&
+        t instanceof Shape &&
         ShapeRepository.flyweights.set(e, t);
   }
   static get(e) {
@@ -23,7 +23,7 @@ class ShapeRepository {
     return [...ShapeRepository.flyweights.keys()];
   }
 }
-class d {
+class Shape {
   drawImpl(e, t, o) {
     console.error(
       `*** RxVis ***: method drawImpl not implemented for class ${this.__proto__.constructor.name}`
@@ -44,67 +44,67 @@ class d {
       (e.lineWidth = s);
   }
   static set width(e) {
-    d.w = e;
+    Shape.w = e;
   }
 }
-d.w = 20;
+Shape.w = 20;
 ShapeRepository.register(
   "circle",
-  new (class extends d {
+  new (class extends Shape {
     drawImpl(e, t, o) {
-      const n = d.w / 2;
+      const n = Shape.w / 2;
       e.arc(t + n, o - n, n, 0, 2 * Math.PI, !1);
     }
   })()
 );
 ShapeRepository.register(
   "square",
-  new (class extends d {
+  new (class extends Shape {
     drawImpl(e, t, o) {
       e.moveTo(t, o),
-        e.lineTo(t, o - d.w),
-        e.lineTo(t + d.w, o - d.w),
-        e.lineTo(t + d.w, o),
+        e.lineTo(t, o - Shape.w),
+        e.lineTo(t + Shape.w, o - Shape.w),
+        e.lineTo(t + Shape.w, o),
         e.lineTo(t, o);
     }
   })()
 );
 ShapeRepository.register(
   "triangle",
-  new (class extends d {
+  new (class extends Shape {
     drawImpl(e, t, o) {
       e.moveTo(t, o),
-        e.lineTo(t + d.w / 2, o - d.w),
-        e.lineTo(t + d.w, o),
+        e.lineTo(t + Shape.w / 2, o - Shape.w),
+        e.lineTo(t + Shape.w, o),
         e.lineTo(t, o);
     }
   })()
 );
 ShapeRepository.register(
   "diamond",
-  new (class extends d {
+  new (class extends Shape {
     drawImpl(e, t, o) {
-      e.moveTo(t, o - d.w / 2),
-        e.lineTo(t + d.w / 2, o - d.w),
-        e.lineTo(t + d.w, o - d.w / 2),
-        e.lineTo(t + d.w / 2, o),
-        e.lineTo(t, o - d.w / 2);
+      e.moveTo(t, o - Shape.w / 2),
+        e.lineTo(t + Shape.w / 2, o - Shape.w),
+        e.lineTo(t + Shape.w, o - Shape.w / 2),
+        e.lineTo(t + Shape.w / 2, o),
+        e.lineTo(t, o - Shape.w / 2);
     }
   })()
 );
 ShapeRepository.register(
   "cross",
-  new (class extends d {
+  new (class extends Shape {
     drawImpl(e, t, o) {
-      const n = d.w / 3;
+      const n = Shape.w / 3;
       e.moveTo(t, o - n),
         e.lineTo(t, o - 2 * n),
         e.lineTo(t + n, o - 2 * n),
-        e.lineTo(t + n, o - d.w),
-        e.lineTo(t + 2 * n, o - d.w),
+        e.lineTo(t + n, o - Shape.w),
+        e.lineTo(t + 2 * n, o - Shape.w),
         e.lineTo(t + 2 * n, o - 2 * n),
-        e.lineTo(t + d.w, o - 2 * n),
-        e.lineTo(t + d.w, o - n),
+        e.lineTo(t + Shape.w, o - 2 * n),
+        e.lineTo(t + Shape.w, o - n),
         e.lineTo(t + 2 * n, o - n),
         e.lineTo(t + 2 * n, o),
         e.lineTo(t + n, o),
@@ -115,29 +115,29 @@ ShapeRepository.register(
 );
 ShapeRepository.register(
   "rhombus",
-  new (class extends d {
+  new (class extends Shape {
     drawImpl(e, t, o) {
       e.moveTo(t, o),
-        e.lineTo(t + d.w / 2, o - d.w),
-        e.lineTo(t + d.w + d.w / 2, o - d.w),
-        e.lineTo(t + d.w, o),
+        e.lineTo(t + Shape.w / 2, o - Shape.w),
+        e.lineTo(t + Shape.w + Shape.w / 2, o - Shape.w),
+        e.lineTo(t + Shape.w, o),
         e.lineTo(t, o);
     }
   })()
 );
 ShapeRepository.register(
   "octagon",
-  new (class extends d {
+  new (class extends Shape {
     drawImpl(e, t, o) {
-      const n = d.w / (1 + Math.sqrt(2)),
-        i = d.w / 2;
+      const n = Shape.w / (1 + Math.sqrt(2)),
+        i = Shape.w / 2;
       e.moveTo(t + i - n / 2, o),
         e.lineTo(t, o - i + n / 2),
         e.lineTo(t, o - i - n / 2),
-        e.lineTo(t + i - n / 2, o - d.w),
-        e.lineTo(t + i + n / 2, o - d.w),
-        e.lineTo(t + d.w, o - i - n / 2),
-        e.lineTo(t + d.w, o - i + n / 2),
+        e.lineTo(t + i - n / 2, o - Shape.w),
+        e.lineTo(t + i + n / 2, o - Shape.w),
+        e.lineTo(t + Shape.w, o - i - n / 2),
+        e.lineTo(t + Shape.w, o - i + n / 2),
         e.lineTo(t + i + n / 2, o),
         e.lineTo(t + i - n / 2, o);
     }
@@ -145,32 +145,32 @@ ShapeRepository.register(
 );
 ShapeRepository.register(
   "kite",
-  new (class extends d {
+  new (class extends Shape {
     drawImpl(e, t, o) {
-      e.moveTo(t + d.w / 2, o),
-        e.lineTo(t, o - 0.75 * d.w),
-        e.lineTo(t + d.w / 2, o - d.w),
-        e.lineTo(t + d.w, o - 0.75 * d.w),
-        e.lineTo(t + d.w / 2, o);
+      e.moveTo(t + Shape.w / 2, o),
+        e.lineTo(t, o - 0.75 * Shape.w),
+        e.lineTo(t + Shape.w / 2, o - Shape.w),
+        e.lineTo(t + Shape.w, o - 0.75 * Shape.w),
+        e.lineTo(t + Shape.w / 2, o);
     }
   })()
 );
 ShapeRepository.register(
   "x",
-  new (class extends d {
+  new (class extends Shape {
     drawImpl(e, t, o) {
-      const n = d.w / 5;
+      const n = Shape.w / 5;
       e.moveTo(t, o - n),
-        e.lineTo(t + d.w / 2 - n, o - d.w / 2),
-        e.lineTo(t, o - d.w + n),
-        e.lineTo(t + n, o - d.w),
-        e.lineTo(t + d.w / 2, o - d.w / 2 - n),
-        e.lineTo(t + d.w - n, o - d.w),
-        e.lineTo(t + d.w, o - d.w + n),
-        e.lineTo(t + d.w / 2 + n, o - d.w / 2),
-        e.lineTo(t + d.w, o - n),
-        e.lineTo(t + d.w - n, o),
-        e.lineTo(t + d.w / 2, o - d.w / 2 + n),
+        e.lineTo(t + Shape.w / 2 - n, o - Shape.w / 2),
+        e.lineTo(t, o - Shape.w + n),
+        e.lineTo(t + n, o - Shape.w),
+        e.lineTo(t + Shape.w / 2, o - Shape.w / 2 - n),
+        e.lineTo(t + Shape.w - n, o - Shape.w),
+        e.lineTo(t + Shape.w, o - Shape.w + n),
+        e.lineTo(t + Shape.w / 2 + n, o - Shape.w / 2),
+        e.lineTo(t + Shape.w, o - n),
+        e.lineTo(t + Shape.w - n, o),
+        e.lineTo(t + Shape.w / 2, o - Shape.w / 2 + n),
         e.lineTo(t + n, o),
         e.lineTo(t, o - n);
     }
@@ -178,16 +178,16 @@ ShapeRepository.register(
 );
 ShapeRepository.register(
   "mushroom",
-  new (class extends d {
+  new (class extends Shape {
     drawImpl(e, t, o) {
-      const n = d.w / 3,
-        i = d.w / 2;
+      const n = Shape.w / 3,
+        i = Shape.w / 2;
       e.moveTo(t + n, o),
-        e.lineTo(t + n, o - d.w / 2),
-        e.lineTo(t + 2 * n, o - d.w / 2),
+        e.lineTo(t + n, o - Shape.w / 2),
+        e.lineTo(t + 2 * n, o - Shape.w / 2),
         e.lineTo(t + 2 * n, o),
         e.lineTo(t + n, o),
-        e.moveTo(t + n, o - d.w / 2),
+        e.moveTo(t + n, o - Shape.w / 2),
         e.arc(t + i, o - i, i, 0, Math.PI, !0);
     }
   })()
@@ -195,17 +195,17 @@ ShapeRepository.register(
 let h, g;
 ShapeRepository.register(
   "star",
-  new (class extends d {
+  new (class extends Shape {
     drawImpl(e, t, o) {
-      const n = d.w / 6,
-        i = d.w / 2;
+      const n = Shape.w / 6,
+        i = Shape.w / 2;
       e.moveTo(t + i, o),
         e.lineTo(t + i - n, o - i + n),
         e.lineTo(t, o - i),
         e.lineTo(t + i - n, o - i - n),
-        e.lineTo(t + i, o - d.w),
+        e.lineTo(t + i, o - Shape.w),
         e.lineTo(t + i + n, o - i - n),
-        e.lineTo(t + d.w, o - i),
+        e.lineTo(t + Shape.w, o - i),
         e.lineTo(t + i + n, o - i + n),
         e.lineTo(t + i, o);
     }
@@ -329,7 +329,7 @@ function N(e) {
   let [t, o] = P(e.lineNr, e.time);
   W.push(e),
     t <= b.headerWidth ||
-      (D[e.lineNr] > 0 && (t += D[e.lineNr] * d.w),
+      (D[e.lineNr] > 0 && (t += D[e.lineNr] * Shape.w),
       (e.x = t),
       (e.y = o),
       b.DEBUG &&
@@ -634,7 +634,7 @@ export default {
         Object.keys(b)
           .filter((e) => b.hasOwnProperty(e))
           .forEach((e) => S(`RxVis '${e}' --\x3e ${b[e]}`)),
-      (d.width = b.shapeSize),
+      (Shape.width = b.shapeSize),
       S(
         `init with canvasId '${e.canvasId}' and logDivId '${e.logDivId}'`,
         "color:orange"
