@@ -14,7 +14,8 @@ import ShapeRepository from "./ShapeRepository";
 let now;
 /** @type {CanvasRenderingContext2D} */
 let ctx;
-let w,
+/** @type {HTMLCanvasElement} */
+let canvas,
   m,
   u,
   p = ["A", "B"],
@@ -100,7 +101,7 @@ function P(e, t) {
   const o = b.maxPeriod;
   t || (t = new Date());
   const n = (t - now) / o,
-    i = w.width - b.headerWidth - 2 * b.marginHorizontal;
+    i = canvas.width - b.headerWidth - 2 * b.marginHorizontal;
   return [
     b.headerWidth + b.marginHorizontal + n * i,
     b.marginVertical + e * b.blockHeight,
@@ -209,24 +210,24 @@ function z(e, t, o) {
     ctx.closePath();
 }
 function H(e) {
-  if (!w) return;
+  if (!canvas) return;
   b.autoExpandCanvasWidth &&
-    (w.width = window.innerWidth - 3 * b.marginHorizontal),
-    (w.height = (p.length - 1) * b.blockHeight + 2 * b.marginVertical),
-    (ctx = w.getContext("2d")),
-    (w.width = w.width),
+    (canvas.width = window.innerWidth - 3 * b.marginHorizontal),
+    (canvas.height = (p.length - 1) * b.blockHeight + 2 * b.marginVertical),
+    (ctx = canvas.getContext("2d")),
+    (canvas.width = canvas.width),
     (ctx.font = b.font);
   const t = f + 1;
   ctx.beginPath();
   for (let e = 0; e < t; e++) {
     const t = b.marginVertical + e * b.blockHeight;
     ctx.moveTo(b.headerWidth, t),
-      ctx.lineTo(w.width - b.marginHorizontal, t),
+      ctx.lineTo(canvas.width - b.marginHorizontal, t),
       ctx.stroke(),
       ctx.fillText(p[e] || "", b.marginHorizontal, t);
   }
   ctx.closePath(),
-    ctx.fillText("RxJsVisualizer@1.3.6", w.width - 130, w.height - 4),
+    ctx.fillText("RxJsVisualizer@1.3.6", canvas.width - 130, canvas.height - 4),
     b.addNavigationButtons && A(),
     e &&
       (function () {
@@ -257,7 +258,7 @@ function H(e) {
 let O = -1;
 function U(e) {
   const t = (e - now) / b.maxPeriod,
-    o = w.width - b.headerWidth - 2 * b.marginHorizontal;
+    o = canvas.width - b.headerWidth - 2 * b.marginHorizontal;
   return [b.headerWidth + b.marginHorizontal + t * o, t];
 }
 function V() {
@@ -291,7 +292,7 @@ function M(e) {
 let G = !0;
 function A() {
   const e = 17;
-  ctx.clearRect(0, w.height - e, 52, w.height);
+  ctx.clearRect(0, canvas.height - e, 52, canvas.height);
   const t = ctx.strokeStyle,
     o = ctx.lineWidth,
     n = ctx.fillStyle,
@@ -306,14 +307,14 @@ function A() {
     (ctx.fillStyle = n),
     (ctx.strokeStyle = t),
     (ctx.lineWidth = o),
-    (w.onclick = (t) => {
+    (canvas.onclick = (t) => {
       const [o, n] = (function (e) {
-        const t = w.getBoundingClientRect(),
+        const t = canvas.getBoundingClientRect(),
           o = e.clientX - t.left,
           n = e.clientY - t.top;
         return [o, n];
       })(t);
-      n < w.height - 1 - e ||
+      n < canvas.height - 1 - e ||
         o > 52 ||
         (o < e
           ? (b.DEBUG && console.log("   back"), M(-1e3))
@@ -326,7 +327,7 @@ function A() {
 }
 function F(e, t, o, n = 0, i = 0) {
   ctx.beginPath();
-  const r = w.height - 1;
+  const r = canvas.height - 1;
   ctx.moveTo(t, r),
     ctx.lineTo(t, r - o),
     ctx.lineTo(t + o, r - o),
@@ -334,7 +335,7 @@ function F(e, t, o, n = 0, i = 0) {
     ctx.lineTo(t, r),
     ctx.closePath(),
     ctx.stroke(),
-    ctx.fillText(e, t + n, w.height - i);
+    ctx.fillText(e, t + n, canvas.height - i);
 }
 function _(e, t, o = !1, n) {
   if (e > f) {
@@ -407,8 +408,9 @@ class X {
 export default {
   init: function (e) {
     try {
-      void 0 !== typeof document && (w = document.getElementById(e.canvasId)),
-        w ||
+      void 0 !== typeof document &&
+        (canvas = document.getElementById(e.canvasId)),
+        canvas ||
           (E("-------------------------------------------------------------"),
           E(
             `--- Cannot visualize - canvas with id '${e.canvasId}' not found ---`
@@ -449,7 +451,7 @@ export default {
       (u = { ...b.symbolMap }),
       (u["Error;red"] = new X({ text: "Error", color: "red" })),
       (u["Complete;orange"] = new X({ text: "Complete", color: "orange" })),
-      w &&
+      canvas &&
         (H(!1),
         (function () {
           S("drawRegisteredShapes"), (now = new Date());
