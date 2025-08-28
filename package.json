@@ -6,10 +6,17 @@
   "license": "MIT",
   "homepage": "https://github.com/neillrobson/show-rx",
   "devDependencies": {
-    "http-server": "^14.1.1"
+    "http-server": "^14.1.1",
+    "npm-run-all": "^4.1.5",
+    "rimraf": "^6.0.1",
+    "rollup": "^4.49.0"
   },
   "scripts": {
-    "predemo": "cp index.js demo",
+    "build": "rimraf dist && rollup -c",
+    "predemo": "npm run build && cp dist/index.umd.js demo/index.js",
     "demo": "http-server demo"
+  },
+  "peerDependencies": {
+    "rxjs": "^7.8.2"
   }
 }
