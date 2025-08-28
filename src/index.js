@@ -1,11 +1,4 @@
-import * as o from "rxjs";
-import {
-  Subject as n,
-  concatMap as i,
-  map as r,
-  delay as s,
-  share as a,
-} from "rxjs";
+import { Subject, concatMap, map, delay, share, timer, range, of } from "rxjs";
 
 import Shape from "./Shape";
 import ShapeRepository from "./ShapeRepository";
@@ -263,7 +256,7 @@ function H(e) {
     e &&
       (function () {
         const e = 50,
-          t = o.timer(0, e).subscribe((e) => {
+          t = timer(0, e).subscribe((e) => {
             const o = V(),
               [n, i] = U(new Date()),
               r = ctx.lineWidth;
@@ -528,23 +521,23 @@ export default {
   createStreamFromArrayRandom: function (e, t = 0, n = 500, l = 2e3) {
     return (
       t || (t = e.length),
-      o.range(0, t).pipe(
-        r((t) => rnd(0, e.length - 1)),
-        r((t) => e[t]),
-        i((e) => o.of(e).pipe(s(rnd(n, l)))),
-        a()
+      range(0, t).pipe(
+        map((t) => rnd(0, e.length - 1)),
+        map((t) => e[t]),
+        concatMap((e) => of(e).pipe(delay(rnd(n, l)))),
+        share()
       )
     );
   },
   createStreamFromArraySequence: function (e, t = 500, n = 2e3) {
-    return o.range(0, e.length).pipe(
-      r((t) => e[t]),
-      i((e) => o.of(e).pipe(s(rnd(t, n)))),
-      a()
+    return range(0, e.length).pipe(
+      map((t) => e[t]),
+      concatMap((e) => of(e).pipe(delay(rnd(t, n)))),
+      share()
     );
   },
   createStreamFromArrayOnClick: function (e, t, o, i) {
-    const r = new n();
+    const r = new Subject();
     return (
       document
         .getElementById(t)
