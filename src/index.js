@@ -10,7 +10,7 @@ import {
 import Shape from "./Shape";
 import ShapeRepository from "./ShapeRepository";
 
-let h, g;
+let now, g;
 let w,
   m,
   u,
@@ -96,7 +96,7 @@ let W = [],
 function P(e, t) {
   const o = b.maxPeriod;
   t || (t = new Date());
-  const n = (t - h) / o,
+  const n = (t - now) / o,
     i = w.width - b.headerWidth - 2 * b.marginHorizontal;
   return [
     b.headerWidth + b.marginHorizontal + n * i,
@@ -253,7 +253,7 @@ function H(e) {
 }
 let O = -1;
 function U(e) {
-  const t = (e - h) / b.maxPeriod,
+  const t = (e - now) / b.maxPeriod,
     o = w.width - b.headerWidth - 2 * b.marginHorizontal;
   return [b.headerWidth + b.marginHorizontal + t * o, t];
 }
@@ -279,7 +279,7 @@ function R(e) {
     (g.font = b.font);
 }
 function M(e) {
-  (h = new Date(h.getTime() + e)), H(!1);
+  (now = new Date(now.getTime() + e)), H(!1);
   const t = [...W];
   (W = []), t.forEach((e) => N(e));
   const o = [...L];
@@ -449,7 +449,7 @@ export default {
       w &&
         (H(!1),
         (function () {
-          S("drawRegisteredShapes"), (h = new Date());
+          S("drawRegisteredShapes"), (now = new Date());
           const [e, t] = P(0),
             [, o] = P(1);
           let n = e;
@@ -508,7 +508,7 @@ export default {
   observerForLine: _,
   startVisualize: function () {
     m && (m.innerHTML = ""),
-      (h = new Date()),
+      (now = new Date()),
       (O = new Date().getSeconds()),
       (T = !1),
       H(!0),
