@@ -1,0 +1,15 @@
+{
+  "name": "show-rx",
+  "version": "0.1.0",
+  "description": "A zero-dependency visualizer for RxJS pipelines.",
+  "author": "Neill Robson",
+  "license": "MIT",
+  "homepage": "https://github.com/neillrobson/show-rx",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  },
+  "scripts": {
+    "predemo": "cp index.js demo",
+    "demo": "http-server demo"
+  }
+}
