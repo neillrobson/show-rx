@@ -7,18 +7,20 @@ import {
   share as a,
 } from "rxjs";
 
-class c {
+class ShapeRepository {
   static register(e, t) {
-    c.flyweights || (c.flyweights = new Map()),
-      !c.flyweights.has(e) && t instanceof d && c.flyweights.set(e, t);
+    ShapeRepository.flyweights || (ShapeRepository.flyweights = new Map()),
+      !ShapeRepository.flyweights.has(e) &&
+        t instanceof d &&
+        ShapeRepository.flyweights.set(e, t);
   }
   static get(e) {
-    return c.flyweights.has(e)
+    return ShapeRepository.flyweights.has(e)
       ? this.flyweights.get(e)
       : (console.error(`No shape '${e}' registered in ShapeFactory!`), null);
   }
   static getRegisteredShapeNames() {
-    return [...c.flyweights.keys()];
+    return [...ShapeRepository.flyweights.keys()];
   }
 }
 class d {
@@ -46,7 +48,7 @@ class d {
   }
 }
 d.w = 20;
-c.register(
+ShapeRepository.register(
   "circle",
   new (class extends d {
     drawImpl(e, t, o) {
@@ -55,7 +57,7 @@ c.register(
     }
   })()
 );
-c.register(
+ShapeRepository.register(
   "square",
   new (class extends d {
     drawImpl(e, t, o) {
@@ -67,7 +69,7 @@ c.register(
     }
   })()
 );
-c.register(
+ShapeRepository.register(
   "triangle",
   new (class extends d {
     drawImpl(e, t, o) {
@@ -78,7 +80,7 @@ c.register(
     }
   })()
 );
-c.register(
+ShapeRepository.register(
   "diamond",
   new (class extends d {
     drawImpl(e, t, o) {
@@ -90,7 +92,7 @@ c.register(
     }
   })()
 );
-c.register(
+ShapeRepository.register(
   "cross",
   new (class extends d {
     drawImpl(e, t, o) {
@@ -111,7 +113,7 @@ c.register(
     }
   })()
 );
-c.register(
+ShapeRepository.register(
   "rhombus",
   new (class extends d {
     drawImpl(e, t, o) {
@@ -123,7 +125,7 @@ c.register(
     }
   })()
 );
-c.register(
+ShapeRepository.register(
   "octagon",
   new (class extends d {
     drawImpl(e, t, o) {
@@ -141,7 +143,7 @@ c.register(
     }
   })()
 );
-c.register(
+ShapeRepository.register(
   "kite",
   new (class extends d {
     drawImpl(e, t, o) {
@@ -153,7 +155,7 @@ c.register(
     }
   })()
 );
-c.register(
+ShapeRepository.register(
   "x",
   new (class extends d {
     drawImpl(e, t, o) {
@@ -174,7 +176,7 @@ c.register(
     }
   })()
 );
-c.register(
+ShapeRepository.register(
   "mushroom",
   new (class extends d {
     drawImpl(e, t, o) {
@@ -191,7 +193,7 @@ c.register(
   })()
 );
 let h, g;
-c.register(
+ShapeRepository.register(
   "star",
   new (class extends d {
     drawImpl(e, t, o) {
@@ -215,7 +217,7 @@ let w,
   p = ["A", "B"],
   f = p.length - 1,
   T = !1;
-const y = [...c.getRegisteredShapeNames()];
+const y = [...ShapeRepository.getRegisteredShapeNames()];
 let x = 0,
   b = {
     headerWidth: 50,
@@ -387,7 +389,7 @@ function C(e) {
       g.fillText(t.text, e.x + 1, e.atEnd ? e.y + 15 : e.y - 2),
       (g.fillStyle = o);
   } else {
-    const o = c.get(t.shape),
+    const o = ShapeRepository.get(t.shape),
       n = b.centerShapes ? e.x - b.shapeSize / 2 : e.x;
     o && o.draw(g, n, e.y, t.color, t.strokeOnly);
   }
@@ -653,9 +655,9 @@ export default {
           let n = e;
           y.forEach((e, i) => {
             const r = b.colors[i % b.colors.length];
-            c.get(e).draw(g, n, t, r),
+            ShapeRepository.get(e).draw(g, n, t, r),
               C({ text: e, x: n, y: t, atEnd: !0, shouldIgnoreSymbols: !0 }),
-              c.get(e).draw(g, n, o, r, !0),
+              ShapeRepository.get(e).draw(g, n, o, r, !0),
               (n += 3 * b.shapeSize);
           });
         })());
