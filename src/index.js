@@ -252,7 +252,7 @@ function H(e) {
   }
   ctx.closePath(),
     ctx.fillText("RxJsVisualizer@1.3.6", canvas.width - 130, canvas.height - 4),
-    config.addNavigationButtons && A(),
+    config.addNavigationButtons && drawNavigationButtons(),
     e &&
       (function () {
         const e = 50,
@@ -276,7 +276,7 @@ function H(e) {
                 e >= O + config.tickPeriod / 1e3 &&
                   ((O = e % 60), R(new Date()));
             }
-            T && t.unsubscribe(), i >= 0.995 && G && M(1e3);
+            T && t.unsubscribe(), i >= 0.995 && autoScroll && M(1e3);
           });
       })();
 }
@@ -318,8 +318,9 @@ function M(e) {
   const o = [...L];
   (L = []), o.forEach((e) => R(e));
 }
-let G = !0;
-function A() {
+
+let autoScroll = !0;
+function drawNavigationButtons() {
   const e = 17;
   ctx.clearRect(0, canvas.height - e, 52, canvas.height);
   const t = ctx.strokeStyle,
@@ -329,9 +330,9 @@ function A() {
   (ctx.fillStyle = "gray"),
     (ctx.strokeStyle = "black"),
     (ctx.font = "italic 24px sans-serif"),
-    F("<", 1, e),
-    F(G ? "x" : "o", 18, e, 2, 3),
-    F(">", 35, e),
+    drawNavigationButton("<", 1, e),
+    drawNavigationButton(autoScroll ? "x" : "o", 18, e, 2, 3),
+    drawNavigationButton(">", 35, e),
     (ctx.font = i),
     (ctx.fillStyle = n),
     (ctx.strokeStyle = t),
@@ -348,13 +349,13 @@ function A() {
         (o < e
           ? (config.DEBUG && console.log("   back"), M(-1e3))
           : o < 34
-          ? ((G = !G),
-            config.DEBUG && console.log(`   toggleScrolling to ${G}`),
-            A())
+          ? ((autoScroll = !autoScroll),
+            config.DEBUG && console.log(`   toggleScrolling to ${autoScroll}`),
+            drawNavigationButtons())
           : (config.DEBUG && console.log("   forth"), M(1e3)));
     });
 }
-function F(e, t, o, n = 0, i = 0) {
+function drawNavigationButton(e, t, o, n = 0, i = 0) {
   ctx.beginPath();
   const r = canvas.height - 1;
   ctx.moveTo(t, r),
@@ -366,6 +367,7 @@ function F(e, t, o, n = 0, i = 0) {
     ctx.stroke(),
     ctx.fillText(e, t + n, canvas.height - i);
 }
+
 function observerForLine(e, t, o = !1, n) {
   if (e > lineCount) {
     const t = `** RxVis **:lineNr ${e} not valid - only ${lineCount} line${
