@@ -18,7 +18,8 @@ let ctx;
 let canvas;
 /** @type {HTMLElement} */
 let logDiv;
-let u;
+/** @type {Record<string, DrawingSymbol>} */
+let drawingSymbolMap;
 let p = ["A", "B"];
 let f = p.length - 1;
 let T = !1;
@@ -181,8 +182,10 @@ function N(e) {
         })(t, o));
 }
 function C(e) {
-  let t = e.shouldIgnoreSymbols ? new X({ text: e.text }) : u[e.text];
-  if ((t || (t = new X({ text: e.text })), t.useImage)) {
+  let t = e.shouldIgnoreSymbols
+    ? new DrawingSymbol({ text: e.text })
+    : drawingSymbolMap[e.text];
+  if ((t || (t = new DrawingSymbol({ text: e.text })), t.useImage)) {
     const o = new Image(),
       n = b.centerShapes ? e.x - b.shapeSize / 2 : e.x;
     (o.onload = (t) =>
@@ -378,7 +381,7 @@ function q(e, t = null, o = !1, n) {
   );
 }
 J.draw = q;
-class X {
+class DrawingSymbol {
   constructor(e) {
     (this.options = {
       text: "",
@@ -450,9 +453,15 @@ export default {
       S(`colors: ${JSON.stringify(b.colors)}`, "color:orange"),
       b.maxLogLength > 0 &&
         S(`limit log strings to ${b.maxLogLength} characters`, "color:orange"),
-      (u = { ...b.symbolMap }),
-      (u["Error;red"] = new X({ text: "Error", color: "red" })),
-      (u["Complete;orange"] = new X({ text: "Complete", color: "orange" })),
+      (drawingSymbolMap = { ...b.symbolMap }),
+      (drawingSymbolMap["Error;red"] = new DrawingSymbol({
+        text: "Error",
+        color: "red",
+      })),
+      (drawingSymbolMap["Complete;orange"] = new DrawingSymbol({
+        text: "Complete",
+        color: "orange",
+      })),
       canvas &&
         (H(!1),
         (function () {
@@ -529,10 +538,12 @@ export default {
     S(t), N({ text: t, lineNr: e, atEnd: !0 });
   },
   useRandomSymbolsForNumbers: function (e = 100) {
-    x > 0 && 0 === e && [...Array(x).keys()].forEach((e) => delete u[`${e}`]),
+    x > 0 &&
+      0 === e &&
+      [...Array(x).keys()].forEach((e) => delete drawingSymbolMap[`${e}`]),
       (x = e),
       [...Array(e).keys()].forEach((e) => {
-        u[`${e}`] = new X({
+        drawingSymbolMap[`${e}`] = new DrawingSymbol({
           text: `${e}`,
           color: b.colors[e % b.colors.length],
           shape: y[e % y.length],
@@ -540,6 +551,6 @@ export default {
       });
   },
   operators: J,
-  DrawingSymbol: X,
+  DrawingSymbol: DrawingSymbol,
   draw: q,
 };
