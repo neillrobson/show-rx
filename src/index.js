@@ -58,6 +58,7 @@ let config = {
   maxLogLength: -1,
   DEBUG: !1,
 };
+
 function nowStr() {
   return stringify(new Date());
 }
@@ -72,34 +73,36 @@ function stringify(date) {
   let ms = `${date.getMilliseconds()}`;
   return (ms = `.${"0".repeat(3 - ms.length)}${ms}`), `${t}${ms}`;
 }
-const S = (e, t) => {
+
+const logEvent = (e, t) => {
     console.log(
       `%c${nowStr()}%c ${e}`,
       "color:black;background:skyblue;font-style:italic",
       t
     );
     const o = e.startsWith("Completed") ? "completed" : "";
-    v(e, o);
+    writeDivLog(e, o);
   },
-  E = (e) => {
+  logError = (e) => {
     const t = `${nowStr()}: ${e}`;
-    console.error(t), v(e, "error");
+    console.error(t), writeDivLog(e, "error");
   };
-function v(e, t) {
+function writeDivLog(msg, extraClass) {
   if (!logDiv) return;
-  const o = document.createElement("span");
-  (o.innerHTML = nowStr()), o.classList.add("clock");
-  const n = document.createElement("span");
+  const clockEl = document.createElement("span");
+  (clockEl.innerHTML = nowStr()), clockEl.classList.add("clock");
+  const msgEl = document.createElement("span");
   config.maxLogLength > 0 &&
-    e.length > config.maxLogLength &&
-    (e = `${e.substring(0, config.maxLogLength)}...`),
-    (n.innerHTML = e),
-    (n.style.whiteSpace = "pre"),
-    n.classList.add("msg"),
-    t && n.classList.add(t);
-  const i = document.createElement("div");
-  i.appendChild(o), i.appendChild(n), logDiv.appendChild(i);
+    msg.length > config.maxLogLength &&
+    (msg = `${msg.substring(0, config.maxLogLength)}...`),
+    (msgEl.innerHTML = msg),
+    (msgEl.style.whiteSpace = "pre"),
+    msgEl.classList.add("msg"),
+    extraClass && msgEl.classList.add(extraClass);
+  const item = document.createElement("div");
+  item.appendChild(clockEl), item.appendChild(msgEl), logDiv.appendChild(item);
 }
+
 const I = (e, t) => e + Math.floor(Math.random() * (t - e + 1)),
   D = {};
 let W = [],
@@ -117,11 +120,14 @@ function P(e, t) {
 const j = { atEnd: !1, shouldIgnoreSymbols: !1 };
 function B(e) {
   (e = { ...j, ...e }),
-    config.DEBUG && S(`drawObject ${JSON.stringify(e.obj)}`);
+    config.DEBUG && logEvent(`drawObject ${JSON.stringify(e.obj)}`);
   const t = e.obj && "Array" === e.obj.__proto__.constructor.name,
     o = "boolean" == typeof e.obj,
     n = isFinite(e.obj) && !o;
-  if ((config.DEBUG && S(`  isArray=${t}, isNumber=${n}, isBoolean=${o}`), t))
+  if (
+    (config.DEBUG && logEvent(`  isArray=${t}, isNumber=${n}, isBoolean=${o}`),
+    t)
+  )
     return (
       e.obj.forEach((t) => {
         (e.obj = `${t}`), B(e), D[e.lineNr]++;
@@ -145,7 +151,7 @@ function N(e) {
       (e.x = t),
       (e.y = o),
       config.DEBUG &&
-        S(`drawText ${e.text} at lineNr ${e.lineNr} --\x3e [${t}/${o}]`),
+        logEvent(`drawText ${e.text} at lineNr ${e.lineNr} --\x3e [${t}/${o}]`),
       C(e),
       e.text.startsWith("Error") && z(t, o, "red"),
       e.text.startsWith("Complete") && z(t, o, "orange"),
@@ -154,7 +160,7 @@ function N(e) {
         0 !== D[e.lineNr] ||
         (function (e, t) {
           config.DEBUG &&
-            S(
+            logEvent(
               `line ${e}/${t} --\x3e ${e}/${
                 config.marginVertical + 2 * config.blockHeight
               }`
@@ -171,7 +177,7 @@ function N(e) {
       e.lineNr < lineCount &&
         (function (e, t) {
           config.DEBUG &&
-            S(
+            logEvent(
               `line ${e}/${t} --\x3e ${e}/${
                 config.marginVertical + 2 * config.blockHeight
               }`
@@ -219,7 +225,7 @@ function C(e) {
 }
 function z(e, t, o) {
   config.DEBUG &&
-    S(
+    logEvent(
       `line ${e}/${t} --\x3e ${e}/${
         config.marginVertical + 2 * config.blockHeight
       }`
@@ -372,7 +378,7 @@ function _(e, t, o = !1, n) {
     const t = `** RxVis **:lineNr ${e} not valid - only ${lineCount} line${
       lineCount > 1 ? "s" : ""
     } configured`;
-    throw (E(t), t);
+    throw (logError(t), t);
   }
   return (
     (D[e] = 0),
@@ -381,17 +387,17 @@ function _(e, t, o = !1, n) {
       next: (i) => {
         let r = `${i}`;
         "object" == typeof i && (r = JSON.stringify(i)),
-          S(`${t} ${r}`),
+          logEvent(`${t} ${r}`),
           "function" == typeof n && (i = n(i)),
           B({ obj: i, lineNr: e, atEnd: !1, shouldIgnoreSymbols: o });
       },
       error: (o) => {
-        E(`Error ${t}`),
+        logError(`Error ${t}`),
           N({ text: "Error;red", lineNr: e, atEnd: !0 }),
           e === lineCount && (T = !0);
       },
       complete: () => {
-        S(`Completed ${t}`),
+        logEvent(`Completed ${t}`),
           N({ text: "Complete;orange", lineNr: e, atEnd: !0 }),
           e === lineCount && (T = !0);
       },
@@ -420,7 +426,9 @@ class DrawingSymbol {
         .filter((t) => e.hasOwnProperty(t))
         .filter((e) => !this.options.hasOwnProperty(e))
         .forEach((e) =>
-          E(`*** DrawingSymbol ***: Unknown option '${e}' will be ignored!`)
+          logError(
+            `*** DrawingSymbol ***: Unknown option '${e}' will be ignored!`
+          )
         ),
       (this.options = { ...this.options, ...e }),
       (this.text = `${this.options.text}`.trim()),
@@ -441,44 +449,54 @@ export default {
       void 0 !== typeof document &&
         (canvas = document.getElementById(e.canvasId)),
         canvas ||
-          (E("-------------------------------------------------------------"),
-          E(
+          (logError(
+            "-------------------------------------------------------------"
+          ),
+          logError(
             `--- Cannot visualize - canvas with id '${e.canvasId}' not found ---`
           ),
-          E("-------------------------------------------------------------")),
+          logError(
+            "-------------------------------------------------------------"
+          )),
         void 0 !== typeof document &&
           (logDiv = document.getElementById(e.logDivId)),
         logDiv ||
-          (E("-------------------------------------------------------------"),
-          E(`--- Cannot show logs - div with id '${e.logDivId}' not found ---`),
-          E("-------------------------------------------------------------"));
+          (logError(
+            "-------------------------------------------------------------"
+          ),
+          logError(
+            `--- Cannot show logs - div with id '${e.logDivId}' not found ---`
+          ),
+          logError(
+            "-------------------------------------------------------------"
+          ));
     } catch (e) {
       console.error("document is not defined");
     }
-    S("**********************************************", "color:blue"),
-      S("*****        RxJsVisualizer@1.3.6        *****", "color:blue"),
-      S("*****   © Robert Grueneis (2022-03-16)   *****", "color:blue"),
-      S("**********************************************", "color:blue"),
+    logEvent("**********************************************", "color:blue"),
+      logEvent("*****        RxJsVisualizer@1.3.6        *****", "color:blue"),
+      logEvent("*****   © Robert Grueneis (2022-03-16)   *****", "color:blue"),
+      logEvent("**********************************************", "color:blue"),
       Object.keys(e)
         .filter((t) => e.hasOwnProperty(t))
         .filter((e) => !config.hasOwnProperty(e))
         .forEach((e) =>
-          E(`*** RxVis ***: Unknown option '${e}' will be ignored!`)
+          logError(`*** RxVis ***: Unknown option '${e}' will be ignored!`)
         ),
       (config = { ...config, ...e }),
       config.DEBUG &&
         Object.keys(config)
           .filter((e) => config.hasOwnProperty(e))
-          .forEach((e) => S(`RxVis '${e}' --\x3e ${config[e]}`)),
+          .forEach((e) => logEvent(`RxVis '${e}' --\x3e ${config[e]}`)),
       (Shape.width = config.shapeSize),
-      S(
+      logEvent(
         `init with canvasId '${e.canvasId}' and logDivId '${e.logDivId}'`,
         "color:orange"
       ),
-      S(`shapes: ${JSON.stringify(shapes)}`, "color:orange"),
-      S(`colors: ${JSON.stringify(config.colors)}`, "color:orange"),
+      logEvent(`shapes: ${JSON.stringify(shapes)}`, "color:orange"),
+      logEvent(`colors: ${JSON.stringify(config.colors)}`, "color:orange"),
       config.maxLogLength > 0 &&
-        S(
+        logEvent(
           `limit log strings to ${config.maxLogLength} characters`,
           "color:orange"
         ),
@@ -494,7 +512,7 @@ export default {
       canvas &&
         (H(!1),
         (function () {
-          S("drawRegisteredShapes"), (now = new Date());
+          logEvent("drawRegisteredShapes"), (now = new Date());
           const [e, t] = P(0),
             [, o] = P(1);
           let n = e;
@@ -564,7 +582,7 @@ export default {
     (lineHeadings = e), (lineCount = lineHeadings.length - 1), H(!1);
   },
   writeToLine: function (e, t) {
-    S(t), N({ text: t, lineNr: e, atEnd: !0 });
+    logEvent(t), N({ text: t, lineNr: e, atEnd: !0 });
   },
   useRandomSymbolsForNumbers: function (e = 100) {
     x > 0 &&
