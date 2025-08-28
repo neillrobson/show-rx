@@ -10,7 +10,10 @@ import {
 import Shape from "./Shape";
 import ShapeRepository from "./ShapeRepository";
 
-let now, g;
+/** @type {Date} */
+let now;
+/** @type {CanvasRenderingContext2D} */
+let ctx;
 let w,
   m,
   u,
@@ -148,13 +151,13 @@ function N(e) {
               }`
             );
           const o = 6;
-          g.beginPath(),
-            g.moveTo(e, t - o),
-            g.lineTo(e, t + o),
-            (g.strokeStyle = b.tickColor),
-            (g.lineWidth = 1),
-            g.stroke(),
-            g.closePath();
+          ctx.beginPath(),
+            ctx.moveTo(e, t - o),
+            ctx.lineTo(e, t + o),
+            (ctx.strokeStyle = b.tickColor),
+            (ctx.lineWidth = 1),
+            ctx.stroke(),
+            ctx.closePath();
         })(t, o),
       e.lineNr < f &&
         (function (e, t) {
@@ -164,15 +167,15 @@ function N(e) {
                 b.marginVertical + 2 * b.blockHeight
               }`
             );
-          g.beginPath(),
-            g.moveTo(e, t),
-            g.lineTo(e, b.marginVertical + f * b.blockHeight),
-            (g.strokeStyle = b.guidelineColor),
-            (g.lineWidth = 1),
-            g.setLineDash([3, 3]),
-            g.stroke(),
-            g.closePath(),
-            g.setLineDash([]);
+          ctx.beginPath(),
+            ctx.moveTo(e, t),
+            ctx.lineTo(e, b.marginVertical + f * b.blockHeight),
+            (ctx.strokeStyle = b.guidelineColor),
+            (ctx.lineWidth = 1),
+            ctx.setLineDash([3, 3]),
+            ctx.stroke(),
+            ctx.closePath(),
+            ctx.setLineDash([]);
         })(t, o));
 }
 function C(e) {
@@ -181,49 +184,49 @@ function C(e) {
     const o = new Image(),
       n = b.centerShapes ? e.x - b.shapeSize / 2 : e.x;
     (o.onload = (t) =>
-      g.drawImage(o, n, e.y - b.shapeSize - 1, b.shapeSize, b.shapeSize)),
+      ctx.drawImage(o, n, e.y - b.shapeSize - 1, b.shapeSize, b.shapeSize)),
       (o.src = t.imageUrl);
   } else if (t.useText) {
-    const o = g.fillStyle;
-    (g.fillStyle = t.color),
-      g.fillText(t.text, e.x + 1, e.atEnd ? e.y + 15 : e.y - 2),
-      (g.fillStyle = o);
+    const o = ctx.fillStyle;
+    (ctx.fillStyle = t.color),
+      ctx.fillText(t.text, e.x + 1, e.atEnd ? e.y + 15 : e.y - 2),
+      (ctx.fillStyle = o);
   } else {
     const o = ShapeRepository.get(t.shape),
       n = b.centerShapes ? e.x - b.shapeSize / 2 : e.x;
-    o && o.draw(g, n, e.y, t.color, t.strokeOnly);
+    o && o.draw(ctx, n, e.y, t.color, t.strokeOnly);
   }
 }
 function z(e, t, o) {
   b.DEBUG &&
     S(`line ${e}/${t} --\x3e ${e}/${b.marginVertical + 2 * b.blockHeight}`),
-    g.beginPath(),
-    g.moveTo(e, t),
-    g.lineTo(e, t + 17),
-    (g.strokeStyle = o),
-    (g.lineWidth = 1),
-    g.stroke(),
-    g.closePath();
+    ctx.beginPath(),
+    ctx.moveTo(e, t),
+    ctx.lineTo(e, t + 17),
+    (ctx.strokeStyle = o),
+    (ctx.lineWidth = 1),
+    ctx.stroke(),
+    ctx.closePath();
 }
 function H(e) {
   if (!w) return;
   b.autoExpandCanvasWidth &&
     (w.width = window.innerWidth - 3 * b.marginHorizontal),
     (w.height = (p.length - 1) * b.blockHeight + 2 * b.marginVertical),
-    (g = w.getContext("2d")),
+    (ctx = w.getContext("2d")),
     (w.width = w.width),
-    (g.font = b.font);
+    (ctx.font = b.font);
   const t = f + 1;
-  g.beginPath();
+  ctx.beginPath();
   for (let e = 0; e < t; e++) {
     const t = b.marginVertical + e * b.blockHeight;
-    g.moveTo(b.headerWidth, t),
-      g.lineTo(w.width - b.marginHorizontal, t),
-      g.stroke(),
-      g.fillText(p[e] || "", b.marginHorizontal, t);
+    ctx.moveTo(b.headerWidth, t),
+      ctx.lineTo(w.width - b.marginHorizontal, t),
+      ctx.stroke(),
+      ctx.fillText(p[e] || "", b.marginHorizontal, t);
   }
-  g.closePath(),
-    g.fillText("RxJsVisualizer@1.3.6", w.width - 130, w.height - 4),
+  ctx.closePath(),
+    ctx.fillText("RxJsVisualizer@1.3.6", w.width - 130, w.height - 4),
     b.addNavigationButtons && A(),
     e &&
       (function () {
@@ -231,16 +234,16 @@ function H(e) {
           t = o.timer(0, e).subscribe((e) => {
             const o = V(),
               [n, i] = U(new Date()),
-              r = g.lineWidth;
+              r = ctx.lineWidth;
             if (
-              (g.beginPath(),
-              g.moveTo(b.headerWidth, o),
-              (g.strokeStyle = "orange"),
-              (g.lineWidth = 2),
-              g.lineTo(n, o),
-              g.stroke(),
-              g.closePath(),
-              (g.lineWidth = r),
+              (ctx.beginPath(),
+              ctx.moveTo(b.headerWidth, o),
+              (ctx.strokeStyle = "orange"),
+              (ctx.lineWidth = 2),
+              ctx.lineTo(n, o),
+              ctx.stroke(),
+              ctx.closePath(),
+              (ctx.lineWidth = r),
               b.showTimeTicks)
             ) {
               let e = new Date().getSeconds();
@@ -263,20 +266,20 @@ function V() {
 function R(e) {
   const [t] = U(e);
   if ((L.push(e), t <= b.headerWidth)) return;
-  g.font = "italic 9px sans-serif";
+  ctx.font = "italic 9px sans-serif";
   const o = $(e).substr(3, 5);
-  g.fillText(o, t - 12, V() + 9);
+  ctx.fillText(o, t - 12, V() + 9);
   const n = V(),
-    i = g.lineWidth;
-  g.beginPath(),
-    g.moveTo(t, n),
-    (g.strokeStyle = "orange"),
-    (g.lineWidth = 2),
-    g.lineTo(t, n - 3),
-    g.stroke(),
-    g.closePath(),
-    (g.lineWidth = i),
-    (g.font = b.font);
+    i = ctx.lineWidth;
+  ctx.beginPath(),
+    ctx.moveTo(t, n),
+    (ctx.strokeStyle = "orange"),
+    (ctx.lineWidth = 2),
+    ctx.lineTo(t, n - 3),
+    ctx.stroke(),
+    ctx.closePath(),
+    (ctx.lineWidth = i),
+    (ctx.font = b.font);
 }
 function M(e) {
   (now = new Date(now.getTime() + e)), H(!1);
@@ -288,21 +291,21 @@ function M(e) {
 let G = !0;
 function A() {
   const e = 17;
-  g.clearRect(0, w.height - e, 52, w.height);
-  const t = g.strokeStyle,
-    o = g.lineWidth,
-    n = g.fillStyle,
-    i = g.font;
-  (g.fillStyle = "gray"),
-    (g.strokeStyle = "black"),
-    (g.font = "italic 24px sans-serif"),
+  ctx.clearRect(0, w.height - e, 52, w.height);
+  const t = ctx.strokeStyle,
+    o = ctx.lineWidth,
+    n = ctx.fillStyle,
+    i = ctx.font;
+  (ctx.fillStyle = "gray"),
+    (ctx.strokeStyle = "black"),
+    (ctx.font = "italic 24px sans-serif"),
     F("<", 1, e),
     F(G ? "x" : "o", 18, e, 2, 3),
     F(">", 35, e),
-    (g.font = i),
-    (g.fillStyle = n),
-    (g.strokeStyle = t),
-    (g.lineWidth = o),
+    (ctx.font = i),
+    (ctx.fillStyle = n),
+    (ctx.strokeStyle = t),
+    (ctx.lineWidth = o),
     (w.onclick = (t) => {
       const [o, n] = (function (e) {
         const t = w.getBoundingClientRect(),
@@ -322,16 +325,16 @@ function A() {
     });
 }
 function F(e, t, o, n = 0, i = 0) {
-  g.beginPath();
+  ctx.beginPath();
   const r = w.height - 1;
-  g.moveTo(t, r),
-    g.lineTo(t, r - o),
-    g.lineTo(t + o, r - o),
-    g.lineTo(t + o, r),
-    g.lineTo(t, r),
-    g.closePath(),
-    g.stroke(),
-    g.fillText(e, t + n, w.height - i);
+  ctx.moveTo(t, r),
+    ctx.lineTo(t, r - o),
+    ctx.lineTo(t + o, r - o),
+    ctx.lineTo(t + o, r),
+    ctx.lineTo(t, r),
+    ctx.closePath(),
+    ctx.stroke(),
+    ctx.fillText(e, t + n, w.height - i);
 }
 function _(e, t, o = !1, n) {
   if (e > f) {
@@ -455,9 +458,9 @@ export default {
           let n = e;
           y.forEach((e, i) => {
             const r = b.colors[i % b.colors.length];
-            ShapeRepository.get(e).draw(g, n, t, r),
+            ShapeRepository.get(e).draw(ctx, n, t, r),
               C({ text: e, x: n, y: t, atEnd: !0, shouldIgnoreSymbols: !0 }),
-              ShapeRepository.get(e).draw(g, n, o, r, !0),
+              ShapeRepository.get(e).draw(ctx, n, o, r, !0),
               (n += 3 * b.shapeSize);
           });
         })());
