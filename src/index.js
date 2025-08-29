@@ -103,7 +103,7 @@ function writeDivLog(msg, extraClass) {
 
 const rnd = (min, max) => min + Math.floor(Math.random() * (max - min + 1)),
   D = {};
-let W = [];
+let renderedTextConfigs = [];
 /** @type {Date[]} */
 let renderedDates = [];
 function getDrawingCoords(lineNum, now) {
@@ -151,7 +151,7 @@ function drawText(textConfig) {
   (textConfig = { ...DRAW_CONFIG, ...textConfig }).time ||
     (textConfig.time = new Date());
   let [t, o] = getDrawingCoords(textConfig.lineNr, textConfig.time);
-  W.push(textConfig),
+  renderedTextConfigs.push(textConfig),
     t <= config.headerWidth ||
       (D[textConfig.lineNr] > 0 && (t += D[textConfig.lineNr] * Shape.w),
       (textConfig.x = t),
@@ -304,7 +304,7 @@ function paint(drawTimeline) {
                   drawDate(new Date()));
             }
             hasTerminated && t.unsubscribe(),
-              i >= 0.995 && autoScroll && M(1e3);
+              i >= 0.995 && autoScroll && shiftViewport(1e3);
           });
       })();
 }
@@ -339,12 +339,12 @@ function drawDate(date) {
     (ctx.lineWidth = oldLineWidth),
     (ctx.font = config.font);
 }
-function M(e) {
-  (start = new Date(start.getTime() + e)), paint(false);
-  const t = [...W];
-  (W = []), t.forEach((e) => drawText(e));
-  const o = [...renderedDates];
-  (renderedDates = []), o.forEach((e) => drawDate(e));
+function shiftViewport(durationMs) {
+  (start = new Date(start.getTime() + durationMs)), paint(false);
+  const textConfigs = [...renderedTextConfigs];
+  (renderedTextConfigs = []), textConfigs.forEach((e) => drawText(e));
+  const dates = [...renderedDates];
+  (renderedDates = []), dates.forEach((e) => drawDate(e));
 }
 
 let autoScroll = true;
@@ -375,12 +375,12 @@ function drawNavigationButtons() {
       n < canvas.height - 1 - e ||
         o > 52 ||
         (o < e
-          ? (config.DEBUG && console.log("   back"), M(-1e3))
+          ? (config.DEBUG && console.log("   back"), shiftViewport(-1e3))
           : o < 34
           ? ((autoScroll = !autoScroll),
             config.DEBUG && console.log(`   toggleScrolling to ${autoScroll}`),
             drawNavigationButtons())
-          : (config.DEBUG && console.log("   forth"), M(1e3)));
+          : (config.DEBUG && console.log("   forth"), shiftViewport(1e3)));
     });
 }
 function drawNavigationButton(e, t, o, n = 0, i = 0) {
@@ -611,7 +611,7 @@ export default {
       (lastTickSecond = new Date().getSeconds()),
       (hasTerminated = false),
       paint(true),
-      (W = []);
+      (renderedTextConfigs = []);
   },
   rnd,
   prepareCanvas: function (e) {
