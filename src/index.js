@@ -16,7 +16,7 @@ let drawingSymbolMap;
 /** @type {string[]} */
 let lineHeadings = ["A", "B"];
 let lineCount = lineHeadings.length - 1;
-let T = false;
+let hasTerminated = false;
 const shapes = [...ShapeRepository.getRegisteredShapeNames()];
 let x = 0;
 let config = {
@@ -288,16 +288,18 @@ function paint(drawTimeline) {
               (ctx.lineWidth = r),
               config.showTimeTicks)
             ) {
-              let e = new Date().getSeconds();
-              e < O && (e += 60),
-                e >= O + config.tickPeriod / 1e3 &&
-                  ((O = e % 60), drawDate(new Date()));
+              let currentSeconds = new Date().getSeconds();
+              currentSeconds < lastTickSecond && (currentSeconds += 60),
+                currentSeconds >= lastTickSecond + config.tickPeriod / 1e3 &&
+                  ((lastTickSecond = currentSeconds % 60),
+                  drawDate(new Date()));
             }
-            T && t.unsubscribe(), i >= 0.995 && autoScroll && M(1e3);
+            hasTerminated && t.unsubscribe(),
+              i >= 0.995 && autoScroll && M(1e3);
           });
       })();
 }
-let O = -1;
+let lastTickSecond = -1;
 function getDatePosition(e) {
   const t = (e - start) / config.maxPeriod,
     o = canvas.width - config.headerWidth - 2 * config.marginHorizontal;
@@ -406,12 +408,12 @@ function observerForLine(e, t, o = false, n) {
       error: (o) => {
         logError(`Error ${t}`),
           N({ text: "Error;red", lineNr: e, atEnd: true }),
-          e === lineCount && (T = true);
+          e === lineCount && (hasTerminated = true);
       },
       complete: () => {
         logEvent(`Completed ${t}`),
           N({ text: "Complete;orange", lineNr: e, atEnd: true }),
-          e === lineCount && (T = true);
+          e === lineCount && (hasTerminated = true);
       },
     }
   );
@@ -592,8 +594,8 @@ export default {
   startVisualize: function () {
     logDiv && (logDiv.innerHTML = ""),
       (start = new Date()),
-      (O = new Date().getSeconds()),
-      (T = false),
+      (lastTickSecond = new Date().getSeconds()),
+      (hasTerminated = false),
       paint(true),
       (W = []);
   },

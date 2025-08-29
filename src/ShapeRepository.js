@@ -16,6 +16,7 @@ export default class ShapeRepository {
       ? this.flyweights.get(name)
       : (console.error(`No shape '${name}' registered in ShapeFactory!`), null);
   }
+  /** @returns {String[]} */
   static getRegisteredShapeNames() {
     return [...ShapeRepository.flyweights.keys()];
   }
