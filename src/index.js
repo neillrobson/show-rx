@@ -102,7 +102,7 @@ function writeDivLog(msg, extraClass) {
 }
 
 const rnd = (min, max) => min + Math.floor(Math.random() * (max - min + 1)),
-  D = {};
+  objCountPerLine = {};
 let renderedTextConfigs = [];
 /** @type {Date[]} */
 let renderedDates = [];
@@ -120,26 +120,29 @@ const DRAW_CONFIG = { atEnd: false, shouldIgnoreSymbols: false };
 function drawObject(objectConfig) {
   (objectConfig = { ...DRAW_CONFIG, ...objectConfig }),
     config.DEBUG && logEvent(`drawObject ${JSON.stringify(objectConfig.obj)}`);
-  const t =
+  const isArray =
       objectConfig.obj &&
       "Array" === objectConfig.obj.__proto__.constructor.name,
-    o = "boolean" == typeof objectConfig.obj,
-    n = isFinite(objectConfig.obj) && !o;
+    isBoolean = "boolean" == typeof objectConfig.obj,
+    isNumber = isFinite(objectConfig.obj) && !isBoolean;
   if (
-    (config.DEBUG && logEvent(`  isArray=${t}, isNumber=${n}, isBoolean=${o}`),
-    t)
+    (config.DEBUG &&
+      logEvent(
+        `  isArray=${isArray}, isNumber=${isNumber}, isBoolean=${isBoolean}`
+      ),
+    isArray)
   )
     return (
       objectConfig.obj.forEach((t) => {
         (objectConfig.obj = `${t}`),
           drawObject(objectConfig),
-          D[objectConfig.lineNr]++;
+          objCountPerLine[objectConfig.lineNr]++;
       }),
-      void (D[objectConfig.lineNr] = 0)
+      void (objCountPerLine[objectConfig.lineNr] = 0)
     );
-  o
+  isBoolean
     ? (objectConfig.text = objectConfig.obj ? "true" : "false")
-    : n
+    : isNumber
     ? ((objectConfig.text = `${objectConfig.obj}`),
       x > 0 &&
         !objectConfig.shouldIgnoreSymbols &&
@@ -150,38 +153,39 @@ function drawObject(objectConfig) {
 function drawText(textConfig) {
   (textConfig = { ...DRAW_CONFIG, ...textConfig }).time ||
     (textConfig.time = new Date());
-  let [t, o] = getDrawingCoords(textConfig.lineNr, textConfig.time);
+  let [x, y] = getDrawingCoords(textConfig.lineNr, textConfig.time);
   renderedTextConfigs.push(textConfig),
-    t <= config.headerWidth ||
-      (D[textConfig.lineNr] > 0 && (t += D[textConfig.lineNr] * Shape.w),
-      (textConfig.x = t),
-      (textConfig.y = o),
+    x <= config.headerWidth ||
+      (objCountPerLine[textConfig.lineNr] > 0 &&
+        (x += objCountPerLine[textConfig.lineNr] * Shape.w),
+      (textConfig.x = x),
+      (textConfig.y = y),
       config.DEBUG &&
         logEvent(
-          `drawText ${textConfig.text} at lineNr ${textConfig.lineNr} --\x3e [${t}/${o}]`
+          `drawText ${textConfig.text} at lineNr ${textConfig.lineNr} --\x3e [${x}/${y}]`
         ),
       drawLabel(textConfig),
-      textConfig.text.startsWith("Error") && drawTickMark(t, o, "red"),
-      textConfig.text.startsWith("Complete") && drawTickMark(t, o, "orange"),
+      textConfig.text.startsWith("Error") && drawTickMark(x, y, "red"),
+      textConfig.text.startsWith("Complete") && drawTickMark(x, y, "orange"),
       textConfig.text.startsWith("Complete") ||
         textConfig.text.startsWith("Error") ||
-        0 !== D[textConfig.lineNr] ||
-        (function (e, t) {
+        0 !== objCountPerLine[textConfig.lineNr] ||
+        (function (x, y) {
           config.DEBUG &&
             logEvent(
-              `line ${e}/${t} --\x3e ${e}/${
+              `line ${x}/${y} --\x3e ${x}/${
                 config.marginVertical + 2 * config.blockHeight
               }`
             );
-          const o = 6;
+          const tickHeight = 6;
           ctx.beginPath(),
-            ctx.moveTo(e, t - o),
-            ctx.lineTo(e, t + o),
+            ctx.moveTo(x, y - tickHeight),
+            ctx.lineTo(x, y + tickHeight),
             (ctx.strokeStyle = config.tickColor),
             (ctx.lineWidth = 1),
             ctx.stroke(),
             ctx.closePath();
-        })(t, o),
+        })(x, y),
       textConfig.lineNr < lineCount &&
         (function (e, t) {
           config.DEBUG &&
@@ -202,7 +206,7 @@ function drawText(textConfig) {
             ctx.stroke(),
             ctx.closePath(),
             ctx.setLineDash([]);
-        })(t, o));
+        })(x, y));
 }
 function drawLabel(labelConfig) {
   let symbol = labelConfig.shouldIgnoreSymbols
@@ -396,38 +400,43 @@ function drawNavigationButton(e, t, o, n = 0, i = 0) {
     ctx.fillText(e, t + n, canvas.height - i);
 }
 
-function observerForLine(e, t, o = false, n) {
-  if (e > lineCount) {
-    const t = `** RxVis **:lineNr ${e} not valid - only ${lineCount} line${
+function observerForLine(
+  lineNr,
+  lineLabel,
+  shouldIgnoreSymbols = false,
+  transform
+) {
+  if (lineNr > lineCount) {
+    const t = `** RxVis **:lineNr ${lineNr} not valid - only ${lineCount} line${
       lineCount > 1 ? "s" : ""
     } configured`;
     throw (logError(t), t);
   }
   return (
-    (D[e] = 0),
-    (t = t || ""),
+    (objCountPerLine[lineNr] = 0),
+    (lineLabel = lineLabel || ""),
     {
       next: (i) => {
         let r = `${i}`;
         "object" == typeof i && (r = JSON.stringify(i)),
-          logEvent(`${t} ${r}`),
-          "function" == typeof n && (i = n(i)),
+          logEvent(`${lineLabel} ${r}`),
+          "function" == typeof transform && (i = transform(i)),
           drawObject({
             obj: i,
-            lineNr: e,
+            lineNr,
             atEnd: false,
-            shouldIgnoreSymbols: o,
+            shouldIgnoreSymbols: shouldIgnoreSymbols,
           });
       },
       error: (o) => {
-        logError(`Error ${t}`),
-          drawText({ text: "Error;red", lineNr: e, atEnd: true }),
-          e === lineCount && (hasTerminated = true);
+        logError(`Error ${lineLabel}`),
+          drawText({ text: "Error;red", lineNr, atEnd: true }),
+          lineNr === lineCount && (hasTerminated = true);
       },
       complete: () => {
-        logEvent(`Completed ${t}`),
-          drawText({ text: "Complete;orange", lineNr: e, atEnd: true }),
-          e === lineCount && (hasTerminated = true);
+        logEvent(`Completed ${lineLabel}`),
+          drawText({ text: "Complete;orange", lineNr, atEnd: true }),
+          lineNr === lineCount && (hasTerminated = true);
       },
     }
   );
