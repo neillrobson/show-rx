@@ -435,7 +435,9 @@ class DrawingSymbol {
       (this.useText = false),
       (this.useImage = this.imageUrl.length > 0),
       this.useImage ||
-        (this.shape.length > 0 ? (this.useShape = true) : (this.useText = true));
+        (this.shape.length > 0
+          ? (this.useShape = true)
+          : (this.useText = true));
   }
 }
 export default {
@@ -514,7 +516,13 @@ export default {
           shapes.forEach((e, i) => {
             const r = config.colors[i % config.colors.length];
             ShapeRepository.get(e).draw(ctx, n, t, r),
-              C({ text: e, x: n, y: t, atEnd: true, shouldIgnoreSymbols: true }),
+              C({
+                text: e,
+                x: n,
+                y: t,
+                atEnd: true,
+                shouldIgnoreSymbols: true,
+              }),
               ShapeRepository.get(e).draw(ctx, n, o, r, true),
               (n += 3 * config.shapeSize);
           });
