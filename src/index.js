@@ -4,7 +4,7 @@ import Shape from "./Shape";
 import ShapeRepository from "./ShapeRepository";
 
 /** @type {Date} */
-let now;
+let start;
 /** @type {CanvasRenderingContext2D} */
 let ctx;
 /** @type {HTMLCanvasElement} */
@@ -20,8 +20,11 @@ let T = false;
 const shapes = [...ShapeRepository.getRegisteredShapeNames()];
 let x = 0;
 let config = {
+  /** Horizontal space for timeline labels */
   headerWidth: 50,
+  /** X-axis spacing per side */
   marginHorizontal: 5,
+  /** Y-axis spacing per side */
   marginVertical: 40,
   blockHeight: 50,
   shapeSize: 20,
@@ -41,7 +44,9 @@ let config = {
   ],
   canvasId: "canvas",
   logDivId: "logs",
+  /** Maximum period of the timeline (ms) */
   maxPeriod: 1e4,
+  /** Period of tickmarks (ms) */
   tickPeriod: 1e3,
   symbolMap: {},
   guidelineColor: "gray",
@@ -100,14 +105,14 @@ const rnd = (min, max) => min + Math.floor(Math.random() * (max - min + 1)),
   D = {};
 let W = [],
   L = [];
-function P(e, t) {
+function getDrawingCoords(lineNum, now) {
   const o = config.maxPeriod;
-  t || (t = new Date());
-  const n = (t - now) / o,
-    i = canvas.width - config.headerWidth - 2 * config.marginHorizontal;
+  now || (now = new Date());
+  const percentDone = (now - start) / o,
+    bodyWidth = canvas.width - config.headerWidth - 2 * config.marginHorizontal;
   return [
-    config.headerWidth + config.marginHorizontal + n * i,
-    config.marginVertical + e * config.blockHeight,
+    config.headerWidth + config.marginHorizontal + percentDone * bodyWidth,
+    config.marginVertical + lineNum * config.blockHeight,
   ];
 }
 const j = { atEnd: false, shouldIgnoreSymbols: false };
@@ -137,7 +142,7 @@ function B(e) {
 }
 function N(e) {
   (e = { ...j, ...e }).time || (e.time = new Date());
-  let [t, o] = P(e.lineNr, e.time);
+  let [t, o] = getDrawingCoords(e.lineNr, e.time);
   W.push(e),
     t <= config.headerWidth ||
       (D[e.lineNr] > 0 && (t += D[e.lineNr] * Shape.w),
@@ -231,7 +236,7 @@ function z(e, t, o) {
     ctx.stroke(),
     ctx.closePath();
 }
-function H(e) {
+function paint(drawTimeline) {
   if (!canvas) return;
   config.autoExpandCanvasWidth &&
     (canvas.width = window.innerWidth - 3 * config.marginHorizontal),
@@ -253,7 +258,7 @@ function H(e) {
   ctx.closePath(),
     ctx.fillText("RxJsVisualizer@1.3.6", canvas.width - 130, canvas.height - 4),
     config.addNavigationButtons && drawNavigationButtons(),
-    e &&
+    drawTimeline &&
       (function () {
         const e = 50,
           t = timer(0, e).subscribe((e) => {
@@ -282,7 +287,7 @@ function H(e) {
 }
 let O = -1;
 function U(e) {
-  const t = (e - now) / config.maxPeriod,
+  const t = (e - start) / config.maxPeriod,
     o = canvas.width - config.headerWidth - 2 * config.marginHorizontal;
   return [config.headerWidth + config.marginHorizontal + t * o, t];
 }
@@ -312,7 +317,7 @@ function R(e) {
     (ctx.font = config.font);
 }
 function M(e) {
-  (now = new Date(now.getTime() + e)), H(false);
+  (start = new Date(start.getTime() + e)), paint(false);
   const t = [...W];
   (W = []), t.forEach((e) => N(e));
   const o = [...L];
@@ -441,28 +446,28 @@ class DrawingSymbol {
   }
 }
 export default {
-  init: function (e) {
+  init: function (initConfig) {
     try {
       void 0 !== typeof document &&
-        (canvas = document.getElementById(e.canvasId)),
+        (canvas = document.getElementById(initConfig.canvasId)),
         canvas ||
           (logError(
             "-------------------------------------------------------------"
           ),
           logError(
-            `--- Cannot visualize - canvas with id '${e.canvasId}' not found ---`
+            `--- Cannot visualize - canvas with id '${initConfig.canvasId}' not found ---`
           ),
           logError(
             "-------------------------------------------------------------"
           )),
         void 0 !== typeof document &&
-          (logDiv = document.getElementById(e.logDivId)),
+          (logDiv = document.getElementById(initConfig.logDivId)),
         logDiv ||
           (logError(
             "-------------------------------------------------------------"
           ),
           logError(
-            `--- Cannot show logs - div with id '${e.logDivId}' not found ---`
+            `--- Cannot show logs - div with id '${initConfig.logDivId}' not found ---`
           ),
           logError(
             "-------------------------------------------------------------"
@@ -474,20 +479,20 @@ export default {
       logEvent("*****        RxJsVisualizer@1.3.6        *****", "color:blue"),
       logEvent("*****   © Robert Grueneis (2022-03-16)   *****", "color:blue"),
       logEvent("**********************************************", "color:blue"),
-      Object.keys(e)
-        .filter((t) => e.hasOwnProperty(t))
+      Object.keys(initConfig)
+        .filter((t) => initConfig.hasOwnProperty(t))
         .filter((e) => !config.hasOwnProperty(e))
         .forEach((e) =>
           logError(`*** RxVis ***: Unknown option '${e}' will be ignored!`)
         ),
-      (config = { ...config, ...e }),
+      (config = { ...config, ...initConfig }),
       config.DEBUG &&
         Object.keys(config)
           .filter((e) => config.hasOwnProperty(e))
           .forEach((e) => logEvent(`RxVis '${e}' --\x3e ${config[e]}`)),
       (Shape.width = config.shapeSize),
       logEvent(
-        `init with canvasId '${e.canvasId}' and logDivId '${e.logDivId}'`,
+        `init with canvasId '${initConfig.canvasId}' and logDivId '${initConfig.logDivId}'`,
         "color:orange"
       ),
       logEvent(`shapes: ${JSON.stringify(shapes)}`, "color:orange"),
@@ -507,11 +512,11 @@ export default {
         color: "orange",
       })),
       canvas &&
-        (H(false),
+        (paint(false),
         (function () {
-          logEvent("drawRegisteredShapes"), (now = new Date());
-          const [e, t] = P(0),
-            [, o] = P(1);
+          logEvent("drawRegisteredShapes"), (start = new Date());
+          const [e, t] = getDrawingCoords(0),
+            [, o] = getDrawingCoords(1);
           let n = e;
           shapes.forEach((e, i) => {
             const r = config.colors[i % config.colors.length];
@@ -574,15 +579,15 @@ export default {
   observerForLine,
   startVisualize: function () {
     logDiv && (logDiv.innerHTML = ""),
-      (now = new Date()),
+      (start = new Date()),
       (O = new Date().getSeconds()),
       (T = false),
-      H(true),
+      paint(true),
       (W = []);
   },
   rnd,
   prepareCanvas: function (e) {
-    (lineHeadings = e), (lineCount = lineHeadings.length - 1), H(false);
+    (lineHeadings = e), (lineCount = lineHeadings.length - 1), paint(false);
   },
   writeToLine: function (e, t) {
     logEvent(t), N({ text: t, lineNr: e, atEnd: true });
