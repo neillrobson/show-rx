@@ -72,14 +72,14 @@ function stringify(date) {
   return (ms = `.${"0".repeat(3 - ms.length)}${ms}`), `${t}${ms}`;
 }
 
-const logEvent = (e, t) => {
+const logEvent = (text, format) => {
     console.log(
-      `%c${nowStr()}%c ${e}`,
+      `%c${nowStr()}%c ${text}`,
       "color:black;background:skyblue;font-style:italic",
-      t
+      format
     );
-    const o = e.startsWith("Completed") ? "completed" : "";
-    writeDivLog(e, o);
+    const extraClass = text.startsWith("Completed") ? "completed" : "";
+    writeDivLog(text, extraClass);
   },
   logError = (e) => {
     const t = `${nowStr()}: ${e}`;
@@ -116,47 +116,56 @@ function getDrawingCoords(lineNum, now) {
     config.marginVertical + lineNum * config.blockHeight,
   ];
 }
-const j = { atEnd: false, shouldIgnoreSymbols: false };
-function B(e) {
-  (e = { ...j, ...e }),
-    config.DEBUG && logEvent(`drawObject ${JSON.stringify(e.obj)}`);
-  const t = e.obj && "Array" === e.obj.__proto__.constructor.name,
-    o = "boolean" == typeof e.obj,
-    n = isFinite(e.obj) && !o;
+const DRAW_CONFIG = { atEnd: false, shouldIgnoreSymbols: false };
+function drawObject(objectConfig) {
+  (objectConfig = { ...DRAW_CONFIG, ...objectConfig }),
+    config.DEBUG && logEvent(`drawObject ${JSON.stringify(objectConfig.obj)}`);
+  const t =
+      objectConfig.obj &&
+      "Array" === objectConfig.obj.__proto__.constructor.name,
+    o = "boolean" == typeof objectConfig.obj,
+    n = isFinite(objectConfig.obj) && !o;
   if (
     (config.DEBUG && logEvent(`  isArray=${t}, isNumber=${n}, isBoolean=${o}`),
     t)
   )
     return (
-      e.obj.forEach((t) => {
-        (e.obj = `${t}`), B(e), D[e.lineNr]++;
+      objectConfig.obj.forEach((t) => {
+        (objectConfig.obj = `${t}`),
+          drawObject(objectConfig),
+          D[objectConfig.lineNr]++;
       }),
-      void (D[e.lineNr] = 0)
+      void (D[objectConfig.lineNr] = 0)
     );
   o
-    ? (e.text = e.obj ? "true" : "false")
+    ? (objectConfig.text = objectConfig.obj ? "true" : "false")
     : n
-    ? ((e.text = `${e.obj}`),
-      x > 0 && !e.shouldIgnoreSymbols && (e.text = "" + (+e.text % x)))
-    : (e.text = `${e.obj}`),
-    N(e);
+    ? ((objectConfig.text = `${objectConfig.obj}`),
+      x > 0 &&
+        !objectConfig.shouldIgnoreSymbols &&
+        (objectConfig.text = "" + (+objectConfig.text % x)))
+    : (objectConfig.text = `${objectConfig.obj}`),
+    drawText(objectConfig);
 }
-function N(e) {
-  (e = { ...j, ...e }).time || (e.time = new Date());
-  let [t, o] = getDrawingCoords(e.lineNr, e.time);
-  W.push(e),
+function drawText(textConfig) {
+  (textConfig = { ...DRAW_CONFIG, ...textConfig }).time ||
+    (textConfig.time = new Date());
+  let [t, o] = getDrawingCoords(textConfig.lineNr, textConfig.time);
+  W.push(textConfig),
     t <= config.headerWidth ||
-      (D[e.lineNr] > 0 && (t += D[e.lineNr] * Shape.w),
-      (e.x = t),
-      (e.y = o),
+      (D[textConfig.lineNr] > 0 && (t += D[textConfig.lineNr] * Shape.w),
+      (textConfig.x = t),
+      (textConfig.y = o),
       config.DEBUG &&
-        logEvent(`drawText ${e.text} at lineNr ${e.lineNr} --\x3e [${t}/${o}]`),
-      drawLabel(e),
-      e.text.startsWith("Error") && z(t, o, "red"),
-      e.text.startsWith("Complete") && z(t, o, "orange"),
-      e.text.startsWith("Complete") ||
-        e.text.startsWith("Error") ||
-        0 !== D[e.lineNr] ||
+        logEvent(
+          `drawText ${textConfig.text} at lineNr ${textConfig.lineNr} --\x3e [${t}/${o}]`
+        ),
+      drawLabel(textConfig),
+      textConfig.text.startsWith("Error") && drawTickMark(t, o, "red"),
+      textConfig.text.startsWith("Complete") && drawTickMark(t, o, "orange"),
+      textConfig.text.startsWith("Complete") ||
+        textConfig.text.startsWith("Error") ||
+        0 !== D[textConfig.lineNr] ||
         (function (e, t) {
           config.DEBUG &&
             logEvent(
@@ -173,7 +182,7 @@ function N(e) {
             ctx.stroke(),
             ctx.closePath();
         })(t, o),
-      e.lineNr < lineCount &&
+      textConfig.lineNr < lineCount &&
         (function (e, t) {
           config.DEBUG &&
             logEvent(
@@ -233,7 +242,7 @@ function drawLabel(labelConfig) {
     o && o.draw(ctx, n, labelConfig.y, symbol.color, symbol.strokeOnly);
   }
 }
-function z(e, t, o) {
+function drawTickMark(e, t, o) {
   config.DEBUG &&
     logEvent(
       `line ${e}/${t} --\x3e ${e}/${
@@ -333,7 +342,7 @@ function drawDate(date) {
 function M(e) {
   (start = new Date(start.getTime() + e)), paint(false);
   const t = [...W];
-  (W = []), t.forEach((e) => N(e));
+  (W = []), t.forEach((e) => drawText(e));
   const o = [...renderedDates];
   (renderedDates = []), o.forEach((e) => drawDate(e));
 }
@@ -403,16 +412,21 @@ function observerForLine(e, t, o = false, n) {
         "object" == typeof i && (r = JSON.stringify(i)),
           logEvent(`${t} ${r}`),
           "function" == typeof n && (i = n(i)),
-          B({ obj: i, lineNr: e, atEnd: false, shouldIgnoreSymbols: o });
+          drawObject({
+            obj: i,
+            lineNr: e,
+            atEnd: false,
+            shouldIgnoreSymbols: o,
+          });
       },
       error: (o) => {
         logError(`Error ${t}`),
-          N({ text: "Error;red", lineNr: e, atEnd: true }),
+          drawText({ text: "Error;red", lineNr: e, atEnd: true }),
           e === lineCount && (hasTerminated = true);
       },
       complete: () => {
         logEvent(`Completed ${t}`),
-          N({ text: "Complete;orange", lineNr: e, atEnd: true }),
+          drawText({ text: "Complete;orange", lineNr: e, atEnd: true }),
           e === lineCount && (hasTerminated = true);
       },
     }
@@ -604,7 +618,7 @@ export default {
     (lineHeadings = e), (lineCount = lineHeadings.length - 1), paint(false);
   },
   writeToLine: function (e, t) {
-    logEvent(t), N({ text: t, lineNr: e, atEnd: true });
+    logEvent(t), drawText({ text: t, lineNr: e, atEnd: true });
   },
   useRandomSymbolsForNumbers: function (e = 100) {
     x > 0 &&
