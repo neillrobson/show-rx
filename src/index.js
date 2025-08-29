@@ -1,5 +1,8 @@
 import { Subject, concatMap, map, delay, share, timer, range, of } from "rxjs";
 
+import { rnd, stringify } from "./util";
+
+import Logger from "./Logger";
 import Shape from "./Shape";
 import ShapeRepository from "./ShapeRepository";
 
@@ -57,55 +60,14 @@ let config = {
   DEBUG: false,
 };
 
-function nowStr() {
-  return stringify(new Date());
-}
-/**
- * @param {Date} date
- * @returns {string}
- */
-function stringify(date) {
-  const t = [date.getHours(), date.getMinutes(), date.getSeconds()]
-    .map((e) => (e < 10 ? `0${e}` : `${e}`))
-    .join(":");
-  let ms = `${date.getMilliseconds()}`;
-  return (ms = `.${"0".repeat(3 - ms.length)}${ms}`), `${t}${ms}`;
-}
+/** @type {Logger} */
+let logger = new Logger();
 
-const logEvent = (text, format) => {
-    console.log(
-      `%c${nowStr()}%c ${text}`,
-      "color:black;background:skyblue;font-style:italic",
-      format
-    );
-    const extraClass = text.startsWith("Completed") ? "completed" : "";
-    writeDivLog(text, extraClass);
-  },
-  logError = (e) => {
-    const t = `${nowStr()}: ${e}`;
-    console.error(t), writeDivLog(e, "error");
-  };
-function writeDivLog(msg, extraClass) {
-  if (!logDiv) return;
-  const clockEl = document.createElement("span");
-  (clockEl.innerHTML = nowStr()), clockEl.classList.add("clock");
-  const msgEl = document.createElement("span");
-  config.maxLogLength > 0 &&
-    msg.length > config.maxLogLength &&
-    (msg = `${msg.substring(0, config.maxLogLength)}...`),
-    (msgEl.innerHTML = msg),
-    (msgEl.style.whiteSpace = "pre"),
-    msgEl.classList.add("msg"),
-    extraClass && msgEl.classList.add(extraClass);
-  const item = document.createElement("div");
-  item.appendChild(clockEl), item.appendChild(msgEl), logDiv.appendChild(item);
-}
-
-const rnd = (min, max) => min + Math.floor(Math.random() * (max - min + 1)),
-  objCountPerLine = {};
+const objCountPerLine = {};
 let renderedTextConfigs = [];
 /** @type {Date[]} */
 let renderedDates = [];
+
 function getDrawingCoords(lineNum, now) {
   const o = config.maxPeriod;
   now || (now = new Date());
@@ -119,7 +81,8 @@ function getDrawingCoords(lineNum, now) {
 const DRAW_CONFIG = { atEnd: false, shouldIgnoreSymbols: false };
 function drawObject(objectConfig) {
   (objectConfig = { ...DRAW_CONFIG, ...objectConfig }),
-    config.DEBUG && logEvent(`drawObject ${JSON.stringify(objectConfig.obj)}`);
+    config.DEBUG &&
+      logger.event(`drawObject ${JSON.stringify(objectConfig.obj)}`);
   const isArray =
       objectConfig.obj &&
       "Array" === objectConfig.obj.__proto__.constructor.name,
@@ -127,7 +90,7 @@ function drawObject(objectConfig) {
     isNumber = isFinite(objectConfig.obj) && !isBoolean;
   if (
     (config.DEBUG &&
-      logEvent(
+      logger.event(
         `  isArray=${isArray}, isNumber=${isNumber}, isBoolean=${isBoolean}`
       ),
     isArray)
@@ -161,7 +124,7 @@ function drawText(textConfig) {
       (textConfig.x = x),
       (textConfig.y = y),
       config.DEBUG &&
-        logEvent(
+        logger.event(
           `drawText ${textConfig.text} at lineNr ${textConfig.lineNr} --\x3e [${x}/${y}]`
         ),
       drawLabel(textConfig),
@@ -172,7 +135,7 @@ function drawText(textConfig) {
         0 !== objCountPerLine[textConfig.lineNr] ||
         (function (x, y) {
           config.DEBUG &&
-            logEvent(
+            logger.event(
               `line ${x}/${y} --\x3e ${x}/${
                 config.marginVertical + 2 * config.blockHeight
               }`
@@ -189,7 +152,7 @@ function drawText(textConfig) {
       textConfig.lineNr < lineCount &&
         (function (e, t) {
           config.DEBUG &&
-            logEvent(
+            logger.event(
               `line ${e}/${t} --\x3e ${e}/${
                 config.marginVertical + 2 * config.blockHeight
               }`
@@ -248,7 +211,7 @@ function drawLabel(labelConfig) {
 }
 function drawTickMark(e, t, o) {
   config.DEBUG &&
-    logEvent(
+    logger.event(
       `line ${e}/${t} --\x3e ${e}/${
         config.marginVertical + 2 * config.blockHeight
       }`
@@ -410,7 +373,7 @@ function observerForLine(
     const t = `** RxVis **:lineNr ${lineNr} not valid - only ${lineCount} line${
       lineCount > 1 ? "s" : ""
     } configured`;
-    throw (logError(t), t);
+    throw (logger.error(t), t);
   }
   return (
     (objCountPerLine[lineNr] = 0),
@@ -419,7 +382,7 @@ function observerForLine(
       next: (i) => {
         let r = `${i}`;
         "object" == typeof i && (r = JSON.stringify(i)),
-          logEvent(`${lineLabel} ${r}`),
+          logger.event(`${lineLabel} ${r}`),
           "function" == typeof transform && (i = transform(i)),
           drawObject({
             obj: i,
@@ -429,12 +392,12 @@ function observerForLine(
           });
       },
       error: (o) => {
-        logError(`Error ${lineLabel}`),
+        logger.error(`Error ${lineLabel}`),
           drawText({ text: "Error;red", lineNr, atEnd: true }),
           lineNr === lineCount && (hasTerminated = true);
       },
       complete: () => {
-        logEvent(`Completed ${lineLabel}`),
+        logger.event(`Completed ${lineLabel}`),
           drawText({ text: "Complete;orange", lineNr, atEnd: true }),
           lineNr === lineCount && (hasTerminated = true);
       },
@@ -463,7 +426,7 @@ class DrawingSymbol {
         .filter((t) => e.hasOwnProperty(t))
         .filter((e) => !this.options.hasOwnProperty(e))
         .forEach((e) =>
-          logError(
+          logger.error(
             `*** DrawingSymbol ***: Unknown option '${e}' will be ignored!`
           )
         ),
@@ -488,54 +451,67 @@ export default {
       void 0 !== typeof document &&
         (canvas = document.getElementById(initConfig.canvasId)),
         canvas ||
-          (logError(
+          (logger.error(
             "-------------------------------------------------------------"
           ),
-          logError(
+          logger.error(
             `--- Cannot visualize - canvas with id '${initConfig.canvasId}' not found ---`
           ),
-          logError(
+          logger.error(
             "-------------------------------------------------------------"
           )),
         void 0 !== typeof document &&
           (logDiv = document.getElementById(initConfig.logDivId)),
         logDiv ||
-          (logError(
+          (logger.error(
             "-------------------------------------------------------------"
           ),
-          logError(
+          logger.error(
             `--- Cannot show logs - div with id '${initConfig.logDivId}' not found ---`
           ),
-          logError(
+          logger.error(
             "-------------------------------------------------------------"
           ));
     } catch (e) {
       console.error("document is not defined");
     }
-    logEvent("**********************************************", "color:blue"),
-      logEvent("*****        RxJsVisualizer@1.3.6        *****", "color:blue"),
-      logEvent("*****   © Robert Grueneis (2022-03-16)   *****", "color:blue"),
-      logEvent("**********************************************", "color:blue"),
+    logger.event(
+      "**********************************************",
+      "color:blue"
+    ),
+      logger.event(
+        "*****        RxJsVisualizer@1.3.6        *****",
+        "color:blue"
+      ),
+      logger.event(
+        "*****   © Robert Grueneis (2022-03-16)   *****",
+        "color:blue"
+      ),
+      logger.event(
+        "**********************************************",
+        "color:blue"
+      ),
       Object.keys(initConfig)
         .filter((t) => initConfig.hasOwnProperty(t))
         .filter((e) => !config.hasOwnProperty(e))
         .forEach((e) =>
-          logError(`*** RxVis ***: Unknown option '${e}' will be ignored!`)
+          logger.error(`*** RxVis ***: Unknown option '${e}' will be ignored!`)
         ),
       (config = { ...config, ...initConfig }),
+      (logger.maxLogLength = config.maxLogLength),
       config.DEBUG &&
         Object.keys(config)
           .filter((e) => config.hasOwnProperty(e))
-          .forEach((e) => logEvent(`RxVis '${e}' --\x3e ${config[e]}`)),
+          .forEach((e) => logger.event(`RxVis '${e}' --\x3e ${config[e]}`)),
       (Shape.width = config.shapeSize),
-      logEvent(
+      logger.event(
         `init with canvasId '${initConfig.canvasId}' and logDivId '${initConfig.logDivId}'`,
         "color:orange"
       ),
-      logEvent(`shapes: ${JSON.stringify(shapes)}`, "color:orange"),
-      logEvent(`colors: ${JSON.stringify(config.colors)}`, "color:orange"),
+      logger.event(`shapes: ${JSON.stringify(shapes)}`, "color:orange"),
+      logger.event(`colors: ${JSON.stringify(config.colors)}`, "color:orange"),
       config.maxLogLength > 0 &&
-        logEvent(
+        logger.event(
           `limit log strings to ${config.maxLogLength} characters`,
           "color:orange"
         ),
@@ -551,7 +527,7 @@ export default {
       canvas &&
         (paint(false),
         (function () {
-          logEvent("drawRegisteredShapes"), (start = new Date());
+          logger.event("drawRegisteredShapes"), (start = new Date());
           const [x0, y0] = getDrawingCoords(0),
             [, y1] = getDrawingCoords(1);
           let x = x0;
@@ -627,7 +603,7 @@ export default {
     (lineHeadings = e), (lineCount = lineHeadings.length - 1), paint(false);
   },
   writeToLine: function (e, t) {
-    logEvent(t), drawText({ text: t, lineNr: e, atEnd: true });
+    logger.event(t), drawText({ text: t, lineNr: e, atEnd: true });
   },
   useRandomSymbolsForNumbers: function (e = 100) {
     x > 0 &&
