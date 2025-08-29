@@ -5,23 +5,26 @@ export default class Shape {
     );
   }
 
-  draw(e, t, o, n, i) {
-    const r = e.fillStyle,
-      l = e.strokeStyle,
-      s = e.lineWidth,
-      a = i ? "stroke" : "fill";
-    (e[`${a}Style`] = n),
-      e.beginPath(),
-      this.drawImpl(e, t, o - 1, n),
-      e.closePath(),
-      e[a](),
-      (e.fillStyle = r),
-      (e.strokeStyle = l),
-      (e.lineWidth = s);
+  draw(ctx, x, y, color, useStroke) {
+    const oldFill = ctx.fillStyle,
+      oldStroke = ctx.strokeStyle,
+      oldLineWidth = ctx.lineWidth,
+      drawType = useStroke ? "stroke" : "fill";
+    (ctx[`${drawType}Style`] = color),
+      ctx.beginPath(),
+      this.drawImpl(ctx, x, y - 1, color),
+      ctx.closePath(),
+      ctx[drawType](),
+      (ctx.fillStyle = oldFill),
+      (ctx.strokeStyle = oldStroke),
+      (ctx.lineWidth = oldLineWidth);
   }
 
-  static set width(e) {
-    Shape.w = e;
+  /**
+   * @param {number} width
+   */
+  static set width(width) {
+    Shape.w = width;
   }
 }
 

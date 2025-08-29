@@ -7,10 +7,14 @@ export default class ShapeRepository {
         t instanceof Shape &&
         ShapeRepository.flyweights.set(e, t);
   }
-  static get(e) {
-    return ShapeRepository.flyweights.has(e)
-      ? this.flyweights.get(e)
-      : (console.error(`No shape '${e}' registered in ShapeFactory!`), null);
+  /**
+   * @param {String} name Identifier of shape
+   * @returns {Shape}
+   */
+  static get(name) {
+    return ShapeRepository.flyweights.has(name)
+      ? this.flyweights.get(name)
+      : (console.error(`No shape '${name}' registered in ShapeFactory!`), null);
   }
   static getRegisteredShapeNames() {
     return [...ShapeRepository.flyweights.keys()];

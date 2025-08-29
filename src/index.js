@@ -150,7 +150,7 @@ function N(e) {
       (e.y = o),
       config.DEBUG &&
         logEvent(`drawText ${e.text} at lineNr ${e.lineNr} --\x3e [${t}/${o}]`),
-      C(e),
+      drawLabel(e),
       e.text.startsWith("Error") && z(t, o, "red"),
       e.text.startsWith("Complete") && z(t, o, "orange"),
       e.text.startsWith("Complete") ||
@@ -194,31 +194,42 @@ function N(e) {
             ctx.setLineDash([]);
         })(t, o));
 }
-function C(e) {
-  let t = e.shouldIgnoreSymbols
-    ? new DrawingSymbol({ text: e.text })
-    : drawingSymbolMap[e.text];
-  if ((t || (t = new DrawingSymbol({ text: e.text })), t.useImage)) {
-    const o = new Image(),
-      n = config.centerShapes ? e.x - config.shapeSize / 2 : e.x;
-    (o.onload = (t) =>
+function drawLabel(labelConfig) {
+  let symbol = labelConfig.shouldIgnoreSymbols
+    ? new DrawingSymbol({ text: labelConfig.text })
+    : drawingSymbolMap[labelConfig.text];
+  if (
+    (symbol || (symbol = new DrawingSymbol({ text: labelConfig.text })),
+    symbol.useImage)
+  ) {
+    const img = new Image(),
+      x = config.centerShapes
+        ? labelConfig.x - config.shapeSize / 2
+        : labelConfig.x;
+    (img.onload = (t) =>
       ctx.drawImage(
-        o,
-        n,
-        e.y - config.shapeSize - 1,
+        img,
+        x,
+        labelConfig.y - config.shapeSize - 1,
         config.shapeSize,
         config.shapeSize
       )),
-      (o.src = t.imageUrl);
-  } else if (t.useText) {
+      (img.src = symbol.imageUrl);
+  } else if (symbol.useText) {
     const o = ctx.fillStyle;
-    (ctx.fillStyle = t.color),
-      ctx.fillText(t.text, e.x + 1, e.atEnd ? e.y + 15 : e.y - 2),
+    (ctx.fillStyle = symbol.color),
+      ctx.fillText(
+        symbol.text,
+        labelConfig.x + 1,
+        labelConfig.atEnd ? labelConfig.y + 15 : labelConfig.y - 2
+      ),
       (ctx.fillStyle = o);
   } else {
-    const o = ShapeRepository.get(t.shape),
-      n = config.centerShapes ? e.x - config.shapeSize / 2 : e.x;
-    o && o.draw(ctx, n, e.y, t.color, t.strokeOnly);
+    const o = ShapeRepository.get(symbol.shape),
+      n = config.centerShapes
+        ? labelConfig.x - config.shapeSize / 2
+        : labelConfig.x;
+    o && o.draw(ctx, n, labelConfig.y, symbol.color, symbol.strokeOnly);
   }
 }
 function z(e, t, o) {
@@ -515,21 +526,21 @@ export default {
         (paint(false),
         (function () {
           logEvent("drawRegisteredShapes"), (start = new Date());
-          const [e, t] = getDrawingCoords(0),
-            [, o] = getDrawingCoords(1);
-          let n = e;
-          shapes.forEach((e, i) => {
-            const r = config.colors[i % config.colors.length];
-            ShapeRepository.get(e).draw(ctx, n, t, r),
-              C({
-                text: e,
-                x: n,
-                y: t,
+          const [x0, y0] = getDrawingCoords(0),
+            [, y1] = getDrawingCoords(1);
+          let x = x0;
+          shapes.forEach((name, i) => {
+            const color = config.colors[i % config.colors.length];
+            ShapeRepository.get(name).draw(ctx, x, y0, color),
+              drawLabel({
+                text: name,
+                x: x,
+                y: y0,
                 atEnd: true,
                 shouldIgnoreSymbols: true,
               }),
-              ShapeRepository.get(e).draw(ctx, n, o, r, true),
-              (n += 3 * config.shapeSize);
+              ShapeRepository.get(name).draw(ctx, x, y1, color, true),
+              (x += 3 * config.shapeSize);
           });
         })());
   },
