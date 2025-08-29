@@ -16,7 +16,7 @@ let drawingSymbolMap;
 /** @type {string[]} */
 let lineHeadings = ["A", "B"];
 let lineCount = lineHeadings.length - 1;
-let T = !1;
+let T = false;
 const shapes = [...ShapeRepository.getRegisteredShapeNames()];
 let x = 0;
 let config = {
@@ -25,8 +25,8 @@ let config = {
   marginVertical: 40,
   blockHeight: 50,
   shapeSize: 20,
-  centerShapes: !1,
-  autoExpandCanvasWidth: !1,
+  centerShapes: false,
+  autoExpandCanvasWidth: false,
   font: "italic 12px sans-serif",
   colors: [
     "white",
@@ -46,10 +46,10 @@ let config = {
   symbolMap: {},
   guidelineColor: "gray",
   tickColor: "black",
-  showTimeTicks: !0,
-  addNavigationButtons: !1,
+  showTimeTicks: true,
+  addNavigationButtons: false,
   maxLogLength: -1,
-  DEBUG: !1,
+  DEBUG: false,
 };
 
 function nowStr() {
@@ -110,7 +110,7 @@ function P(e, t) {
     config.marginVertical + e * config.blockHeight,
   ];
 }
-const j = { atEnd: !1, shouldIgnoreSymbols: !1 };
+const j = { atEnd: false, shouldIgnoreSymbols: false };
 function B(e) {
   (e = { ...j, ...e }),
     config.DEBUG && logEvent(`drawObject ${JSON.stringify(e.obj)}`);
@@ -312,14 +312,14 @@ function R(e) {
     (ctx.font = config.font);
 }
 function M(e) {
-  (now = new Date(now.getTime() + e)), H(!1);
+  (now = new Date(now.getTime() + e)), H(false);
   const t = [...W];
   (W = []), t.forEach((e) => N(e));
   const o = [...L];
   (L = []), o.forEach((e) => R(e));
 }
 
-let autoScroll = !0;
+let autoScroll = true;
 function drawNavigationButtons() {
   const e = 17;
   ctx.clearRect(0, canvas.height - e, 52, canvas.height);
@@ -368,7 +368,7 @@ function drawNavigationButton(e, t, o, n = 0, i = 0) {
     ctx.fillText(e, t + n, canvas.height - i);
 }
 
-function observerForLine(e, t, o = !1, n) {
+function observerForLine(e, t, o = false, n) {
   if (e > lineCount) {
     const t = `** RxVis **:lineNr ${e} not valid - only ${lineCount} line${
       lineCount > 1 ? "s" : ""
@@ -384,23 +384,23 @@ function observerForLine(e, t, o = !1, n) {
         "object" == typeof i && (r = JSON.stringify(i)),
           logEvent(`${t} ${r}`),
           "function" == typeof n && (i = n(i)),
-          B({ obj: i, lineNr: e, atEnd: !1, shouldIgnoreSymbols: o });
+          B({ obj: i, lineNr: e, atEnd: false, shouldIgnoreSymbols: o });
       },
       error: (o) => {
         logError(`Error ${t}`),
-          N({ text: "Error;red", lineNr: e, atEnd: !0 }),
-          e === lineCount && (T = !0);
+          N({ text: "Error;red", lineNr: e, atEnd: true }),
+          e === lineCount && (T = true);
       },
       complete: () => {
         logEvent(`Completed ${t}`),
-          N({ text: "Complete;orange", lineNr: e, atEnd: !0 }),
-          e === lineCount && (T = !0);
+          N({ text: "Complete;orange", lineNr: e, atEnd: true }),
+          e === lineCount && (T = true);
       },
     }
   );
 }
 const operators = {};
-function draw(e, t = null, o = !1, n) {
+function draw(e, t = null, o = false, n) {
   return (
     null === t && lineHeadings[e] && (t = lineHeadings[e]),
     null === t && (t = ""),
@@ -415,7 +415,7 @@ class DrawingSymbol {
       color: "black",
       shape: "",
       imageUrl: "",
-      strokeOnly: !1,
+      strokeOnly: false,
     }),
       Object.keys(e)
         .filter((t) => e.hasOwnProperty(t))
@@ -431,11 +431,11 @@ class DrawingSymbol {
       (this.shape = this.options.shape.trim()),
       (this.imageUrl = this.options.imageUrl.trim()),
       (this.strokeOnly = this.options.strokeOnly),
-      (this.useShape = !1),
-      (this.useText = !1),
+      (this.useShape = false),
+      (this.useText = false),
       (this.useImage = this.imageUrl.length > 0),
       this.useImage ||
-        (this.shape.length > 0 ? (this.useShape = !0) : (this.useText = !0));
+        (this.shape.length > 0 ? (this.useShape = true) : (this.useText = true));
   }
 }
 export default {
@@ -505,7 +505,7 @@ export default {
         color: "orange",
       })),
       canvas &&
-        (H(!1),
+        (H(false),
         (function () {
           logEvent("drawRegisteredShapes"), (now = new Date());
           const [e, t] = P(0),
@@ -514,8 +514,8 @@ export default {
           shapes.forEach((e, i) => {
             const r = config.colors[i % config.colors.length];
             ShapeRepository.get(e).draw(ctx, n, t, r),
-              C({ text: e, x: n, y: t, atEnd: !0, shouldIgnoreSymbols: !0 }),
-              ShapeRepository.get(e).draw(ctx, n, o, r, !0),
+              C({ text: e, x: n, y: t, atEnd: true, shouldIgnoreSymbols: true }),
+              ShapeRepository.get(e).draw(ctx, n, o, r, true),
               (n += 3 * config.shapeSize);
           });
         })());
@@ -568,16 +568,16 @@ export default {
     logDiv && (logDiv.innerHTML = ""),
       (now = new Date()),
       (O = new Date().getSeconds()),
-      (T = !1),
-      H(!0),
+      (T = false),
+      H(true),
       (W = []);
   },
   rnd,
   prepareCanvas: function (e) {
-    (lineHeadings = e), (lineCount = lineHeadings.length - 1), H(!1);
+    (lineHeadings = e), (lineCount = lineHeadings.length - 1), H(false);
   },
   writeToLine: function (e, t) {
-    logEvent(t), N({ text: t, lineNr: e, atEnd: !0 });
+    logEvent(t), N({ text: t, lineNr: e, atEnd: true });
   },
   useRandomSymbolsForNumbers: function (e = 100) {
     x > 0 &&
