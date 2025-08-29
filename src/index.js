@@ -103,8 +103,9 @@ function writeDivLog(msg, extraClass) {
 
 const rnd = (min, max) => min + Math.floor(Math.random() * (max - min + 1)),
   D = {};
-let W = [],
-  L = [];
+let W = [];
+/** @type {Date[]} */
+let renderedDates = [];
 function getDrawingCoords(lineNum, now) {
   const o = config.maxPeriod;
   now || (now = new Date());
@@ -272,9 +273,9 @@ function paint(drawTimeline) {
     drawTimeline &&
       (function () {
         const e = 50,
-          t = timer(0, e).subscribe((e) => {
-            const o = V(),
-              [n, i] = U(new Date()),
+          t = timer(0, e).subscribe(() => {
+            const o = getDateAbsoluteY(),
+              [n, i] = getDatePosition(new Date()),
               r = ctx.lineWidth;
             if (
               (ctx.beginPath(),
@@ -290,49 +291,49 @@ function paint(drawTimeline) {
               let e = new Date().getSeconds();
               e < O && (e += 60),
                 e >= O + config.tickPeriod / 1e3 &&
-                  ((O = e % 60), R(new Date()));
+                  ((O = e % 60), drawDate(new Date()));
             }
             T && t.unsubscribe(), i >= 0.995 && autoScroll && M(1e3);
           });
       })();
 }
 let O = -1;
-function U(e) {
+function getDatePosition(e) {
   const t = (e - start) / config.maxPeriod,
     o = canvas.width - config.headerWidth - 2 * config.marginHorizontal;
   return [config.headerWidth + config.marginHorizontal + t * o, t];
 }
-function V() {
+function getDateAbsoluteY() {
   return (
     config.marginVertical +
     lineCount * config.blockHeight +
     0.4 * config.marginVertical
   );
 }
-function R(e) {
-  const [t] = U(e);
-  if ((L.push(e), t <= config.headerWidth)) return;
+function drawDate(date) {
+  const [x] = getDatePosition(date);
+  if ((renderedDates.push(date), x <= config.headerWidth)) return;
   ctx.font = "italic 9px sans-serif";
-  const o = stringify(e).substr(3, 5);
-  ctx.fillText(o, t - 12, V() + 9);
-  const n = V(),
-    i = ctx.lineWidth;
+  const text = stringify(date).substr(3, 5);
+  ctx.fillText(text, x - 12, getDateAbsoluteY() + 9);
+  const y = getDateAbsoluteY(),
+    oldLineWidth = ctx.lineWidth;
   ctx.beginPath(),
-    ctx.moveTo(t, n),
+    ctx.moveTo(x, y),
     (ctx.strokeStyle = "orange"),
     (ctx.lineWidth = 2),
-    ctx.lineTo(t, n - 3),
+    ctx.lineTo(x, y - 3),
     ctx.stroke(),
     ctx.closePath(),
-    (ctx.lineWidth = i),
+    (ctx.lineWidth = oldLineWidth),
     (ctx.font = config.font);
 }
 function M(e) {
   (start = new Date(start.getTime() + e)), paint(false);
   const t = [...W];
   (W = []), t.forEach((e) => N(e));
-  const o = [...L];
-  (L = []), o.forEach((e) => R(e));
+  const o = [...renderedDates];
+  (renderedDates = []), o.forEach((e) => drawDate(e));
 }
 
 let autoScroll = true;
