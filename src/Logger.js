@@ -6,6 +6,8 @@ function nowStr() {
 
 export default class Logger {
   maxLogLength = -1;
+  /** @type {HTMLElement} */
+  logDiv = null;
 
   event(text, format) {
     console.log(
@@ -23,7 +25,7 @@ export default class Logger {
   }
 
   writeDivLog(msg, extraClass) {
-    if (!logDiv) return;
+    if (!this.logDiv) return;
     const clockEl = document.createElement("span");
     (clockEl.innerHTML = nowStr()), clockEl.classList.add("clock");
     const msgEl = document.createElement("span");
@@ -37,6 +39,6 @@ export default class Logger {
     const item = document.createElement("div");
     item.appendChild(clockEl),
       item.appendChild(msgEl),
-      logDiv.appendChild(item);
+      this.logDiv.appendChild(item);
   }
 }

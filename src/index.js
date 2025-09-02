@@ -1,5 +1,6 @@
 import { Subject, concatMap, map, delay, share, timer, range, of } from "rxjs";
 
+import config from "./config";
 import { rnd, stringify } from "./util";
 
 import Logger from "./Logger";
@@ -12,8 +13,6 @@ let start;
 let ctx;
 /** @type {HTMLCanvasElement} */
 let canvas;
-/** @type {HTMLElement} */
-let logDiv;
 /** @type {Record<string, DrawingSymbol>} */
 let drawingSymbolMap;
 /** @type {string[]} */
@@ -22,43 +21,6 @@ let lineCount = lineHeadings.length - 1;
 let hasTerminated = false;
 const shapes = [...ShapeRepository.getRegisteredShapeNames()];
 let x = 0;
-let config = {
-  /** Horizontal space for timeline labels */
-  headerWidth: 50,
-  /** X-axis spacing per side */
-  marginHorizontal: 5,
-  /** Y-axis spacing per side */
-  marginVertical: 40,
-  blockHeight: 50,
-  shapeSize: 20,
-  centerShapes: false,
-  autoExpandCanvasWidth: false,
-  font: "italic 12px sans-serif",
-  colors: [
-    "white",
-    "black",
-    "red",
-    "blue",
-    "green",
-    "cyan",
-    "violet",
-    "yellow",
-    "darkgray",
-  ],
-  canvasId: "canvas",
-  logDivId: "logs",
-  /** Maximum period of the timeline (ms) */
-  maxPeriod: 1e4,
-  /** Period of tickmarks (ms) */
-  tickPeriod: 1e3,
-  symbolMap: {},
-  guidelineColor: "gray",
-  tickColor: "black",
-  showTimeTicks: true,
-  addNavigationButtons: false,
-  maxLogLength: -1,
-  DEBUG: false,
-};
 
 /** @type {Logger} */
 let logger = new Logger();
@@ -461,8 +423,8 @@ export default {
             "-------------------------------------------------------------"
           )),
         void 0 !== typeof document &&
-          (logDiv = document.getElementById(initConfig.logDivId)),
-        logDiv ||
+          (logger.logDiv = document.getElementById(initConfig.logDivId)),
+        logger.logDiv ||
           (logger.error(
             "-------------------------------------------------------------"
           ),
@@ -497,7 +459,7 @@ export default {
         .forEach((e) =>
           logger.error(`*** RxVis ***: Unknown option '${e}' will be ignored!`)
         ),
-      (config = { ...config, ...initConfig }),
+      Object.assign(config, initConfig),
       (logger.maxLogLength = config.maxLogLength),
       config.DEBUG &&
         Object.keys(config)
@@ -591,7 +553,7 @@ export default {
   },
   observerForLine,
   startVisualize: function () {
-    logDiv && (logDiv.innerHTML = ""),
+    logger.logDiv && (logger.logDiv.innerHTML = ""),
       (start = new Date()),
       (lastTickSecond = new Date().getSeconds()),
       (hasTerminated = false),
