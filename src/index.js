@@ -2,14 +2,12 @@ import { Subject, concatMap, map, delay, share, timer, range, of } from "rxjs";
 
 import config from "./config";
 import globals from "./globals";
-import { rnd, stringify } from "./util";
+import { rnd, stringify, getDrawingCoords } from "./util";
 
 import Logger from "./Logger";
 import Shape from "./Shape";
 import ShapeRepository from "./ShapeRepository";
 
-/** @type {Date} */
-let start;
 /** @type {CanvasRenderingContext2D} */
 let ctx;
 /** @type {Record<string, DrawingSymbol>} */
@@ -29,17 +27,6 @@ let renderedTextConfigs = [];
 /** @type {Date[]} */
 let renderedDates = [];
 
-function getDrawingCoords(lineNum, now) {
-  const o = config.maxPeriod;
-  now || (now = new Date());
-  const percentDone = (now - start) / o,
-    bodyWidth =
-      globals.canvas.width - config.headerWidth - 2 * config.marginHorizontal;
-  return [
-    config.headerWidth + config.marginHorizontal + percentDone * bodyWidth,
-    config.marginVertical + lineNum * config.blockHeight,
-  ];
-}
 const DRAW_CONFIG = { atEnd: false, shouldIgnoreSymbols: false };
 function drawObject(objectConfig) {
   (objectConfig = { ...DRAW_CONFIG, ...objectConfig }),
@@ -243,7 +230,7 @@ function paint(drawTimeline) {
 }
 let lastTickSecond = -1;
 function getDatePosition(e) {
-  const t = (e - start) / config.maxPeriod,
+  const t = (e - globals.start) / config.maxPeriod,
     o = globals.canvas.width - config.headerWidth - 2 * config.marginHorizontal;
   return [config.headerWidth + config.marginHorizontal + t * o, t];
 }
@@ -273,7 +260,8 @@ function drawDate(date) {
     (ctx.font = config.font);
 }
 function shiftViewport(durationMs) {
-  (start = new Date(start.getTime() + durationMs)), paint(false);
+  (globals.start = new Date(globals.start.getTime() + durationMs)),
+    paint(false);
   const textConfigs = [...renderedTextConfigs];
   (renderedTextConfigs = []), textConfigs.forEach((e) => drawText(e));
   const dates = [...renderedDates];
@@ -492,7 +480,7 @@ export default {
       globals.canvas &&
         (paint(false),
         (function () {
-          logger.event("drawRegisteredShapes"), (start = new Date());
+          logger.event("drawRegisteredShapes"), (globals.start = new Date());
           const [x0, y0] = getDrawingCoords(0),
             [, y1] = getDrawingCoords(1);
           let x = x0;
@@ -557,7 +545,7 @@ export default {
   observerForLine,
   startVisualize: function () {
     logger.logDiv && (logger.logDiv.innerHTML = ""),
-      (start = new Date()),
+      (globals.start = new Date()),
       (lastTickSecond = new Date().getSeconds()),
       (hasTerminated = false),
       paint(true),

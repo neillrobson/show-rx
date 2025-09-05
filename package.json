@@ -14,7 +14,7 @@
   "scripts": {
     "build": "rimraf dist && rollup -c",
     "predemo": "npm run build && cp dist/index.umd.js demo/index.js",
-    "demo": "http-server demo"
+    "demo": "http-server -c-1 demo"
   },
   "peerDependencies": {
     "rxjs": "^7.8.2"
