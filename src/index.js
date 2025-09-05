@@ -1,6 +1,7 @@
 import { Subject, concatMap, map, delay, share, timer, range, of } from "rxjs";
 
 import config from "./config";
+import globals from "./globals";
 import { rnd, stringify } from "./util";
 
 import Logger from "./Logger";
@@ -11,8 +12,6 @@ import ShapeRepository from "./ShapeRepository";
 let start;
 /** @type {CanvasRenderingContext2D} */
 let ctx;
-/** @type {HTMLCanvasElement} */
-let canvas;
 /** @type {Record<string, DrawingSymbol>} */
 let drawingSymbolMap;
 /** @type {string[]} */
@@ -34,7 +33,8 @@ function getDrawingCoords(lineNum, now) {
   const o = config.maxPeriod;
   now || (now = new Date());
   const percentDone = (now - start) / o,
-    bodyWidth = canvas.width - config.headerWidth - 2 * config.marginHorizontal;
+    bodyWidth =
+      globals.canvas.width - config.headerWidth - 2 * config.marginHorizontal;
   return [
     config.headerWidth + config.marginHorizontal + percentDone * bodyWidth,
     config.marginVertical + lineNum * config.blockHeight,
@@ -187,26 +187,30 @@ function drawTickMark(e, t, o) {
     ctx.closePath();
 }
 function paint(drawTimeline) {
-  if (!canvas) return;
+  if (!globals.canvas) return;
   config.autoExpandCanvasWidth &&
-    (canvas.width = window.innerWidth - 3 * config.marginHorizontal),
-    (canvas.height =
+    (globals.canvas.width = window.innerWidth - 3 * config.marginHorizontal),
+    (globals.canvas.height =
       (lineHeadings.length - 1) * config.blockHeight +
       2 * config.marginVertical),
-    (ctx = canvas.getContext("2d")),
-    (canvas.width = canvas.width),
+    (ctx = globals.canvas.getContext("2d")),
+    (globals.canvas.width = globals.canvas.width),
     (ctx.font = config.font);
   const t = lineCount + 1;
   ctx.beginPath();
   for (let e = 0; e < t; e++) {
     const t = config.marginVertical + e * config.blockHeight;
     ctx.moveTo(config.headerWidth, t),
-      ctx.lineTo(canvas.width - config.marginHorizontal, t),
+      ctx.lineTo(globals.canvas.width - config.marginHorizontal, t),
       ctx.stroke(),
       ctx.fillText(lineHeadings[e] || "", config.marginHorizontal, t);
   }
   ctx.closePath(),
-    ctx.fillText("RxJsVisualizer@1.3.6", canvas.width - 130, canvas.height - 4),
+    ctx.fillText(
+      "RxJsVisualizer@1.3.6",
+      globals.canvas.width - 130,
+      globals.canvas.height - 4
+    ),
     config.addNavigationButtons && drawNavigationButtons(),
     drawTimeline &&
       (function () {
@@ -240,7 +244,7 @@ function paint(drawTimeline) {
 let lastTickSecond = -1;
 function getDatePosition(e) {
   const t = (e - start) / config.maxPeriod,
-    o = canvas.width - config.headerWidth - 2 * config.marginHorizontal;
+    o = globals.canvas.width - config.headerWidth - 2 * config.marginHorizontal;
   return [config.headerWidth + config.marginHorizontal + t * o, t];
 }
 function getDateAbsoluteY() {
@@ -279,7 +283,7 @@ function shiftViewport(durationMs) {
 let autoScroll = true;
 function drawNavigationButtons() {
   const e = 17;
-  ctx.clearRect(0, canvas.height - e, 52, canvas.height);
+  ctx.clearRect(0, globals.canvas.height - e, 52, globals.canvas.height);
   const t = ctx.strokeStyle,
     o = ctx.lineWidth,
     n = ctx.fillStyle,
@@ -294,14 +298,14 @@ function drawNavigationButtons() {
     (ctx.fillStyle = n),
     (ctx.strokeStyle = t),
     (ctx.lineWidth = o),
-    (canvas.onclick = (t) => {
+    (globals.canvas.onclick = (t) => {
       const [o, n] = (function (e) {
-        const t = canvas.getBoundingClientRect(),
+        const t = globals.canvas.getBoundingClientRect(),
           o = e.clientX - t.left,
           n = e.clientY - t.top;
         return [o, n];
       })(t);
-      n < canvas.height - 1 - e ||
+      n < globals.canvas.height - 1 - e ||
         o > 52 ||
         (o < e
           ? (config.DEBUG && console.log("   back"), shiftViewport(-1e3))
@@ -314,7 +318,7 @@ function drawNavigationButtons() {
 }
 function drawNavigationButton(e, t, o, n = 0, i = 0) {
   ctx.beginPath();
-  const r = canvas.height - 1;
+  const r = globals.canvas.height - 1;
   ctx.moveTo(t, r),
     ctx.lineTo(t, r - o),
     ctx.lineTo(t + o, r - o),
@@ -322,7 +326,7 @@ function drawNavigationButton(e, t, o, n = 0, i = 0) {
     ctx.lineTo(t, r),
     ctx.closePath(),
     ctx.stroke(),
-    ctx.fillText(e, t + n, canvas.height - i);
+    ctx.fillText(e, t + n, globals.canvas.height - i);
 }
 
 function observerForLine(
@@ -411,8 +415,8 @@ export default {
   init: function (initConfig) {
     try {
       void 0 !== typeof document &&
-        (canvas = document.getElementById(initConfig.canvasId)),
-        canvas ||
+        (globals.canvas = document.getElementById(initConfig.canvasId)),
+        globals.canvas ||
           (logger.error(
             "-------------------------------------------------------------"
           ),
@@ -485,7 +489,7 @@ export default {
         text: "Complete",
         color: "orange",
       })),
-      canvas &&
+      globals.canvas &&
         (paint(false),
         (function () {
           logger.event("drawRegisteredShapes"), (start = new Date());
