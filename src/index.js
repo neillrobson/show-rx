@@ -460,7 +460,6 @@ export default {
           logger.error(`*** RxVis ***: Unknown option '${e}' will be ignored!`)
         ),
       Object.assign(config, initConfig),
-      (logger.maxLogLength = config.maxLogLength),
       config.DEBUG &&
         Object.keys(config)
           .filter((e) => config.hasOwnProperty(e))

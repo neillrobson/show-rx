@@ -1,3 +1,4 @@
+import config from "./config";
 import { stringify } from "./util";
 
 function nowStr() {
@@ -5,7 +6,6 @@ function nowStr() {
 }
 
 export default class Logger {
-  maxLogLength = -1;
   /** @type {HTMLElement} */
   logDiv = null;
 
@@ -29,9 +29,9 @@ export default class Logger {
     const clockEl = document.createElement("span");
     (clockEl.innerHTML = nowStr()), clockEl.classList.add("clock");
     const msgEl = document.createElement("span");
-    this.maxLogLength > 0 &&
-      msg.length > this.maxLogLength &&
-      (msg = `${msg.substring(0, this.maxLogLength)}...`),
+    config.maxLogLength > 0 &&
+      msg.length > config.maxLogLength &&
+      (msg = `${msg.substring(0, config.maxLogLength)}...`),
       (msgEl.innerHTML = msg),
       (msgEl.style.whiteSpace = "pre"),
       msgEl.classList.add("msg"),
