@@ -1,3 +1,10 @@
+import livereload from "rollup-plugin-livereload";
+import serve from "rollup-plugin-serve";
+
+console.log(process.env.NODE_ENV);
+
+const isDev = process.env.NODE_ENV === "development";
+
 export default {
   external: ["rxjs"],
   input: "src/index.js",
@@ -11,4 +18,13 @@ export default {
       },
     },
   ],
+  plugins: isDev
+    ? [
+        serve({
+          open: true,
+          contentBase: ["dist", "demo"],
+        }),
+        livereload("dist"),
+      ]
+    : [],
 };

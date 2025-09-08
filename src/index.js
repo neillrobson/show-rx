@@ -438,7 +438,7 @@ export default {
         "color:blue"
       ),
       logger.event(
-        "*****   © Robert Grueneis (2022-03-16)   *****",
+        "*****        © 2025 Neill Robson         *****",
         "color:blue"
       ),
       logger.event(
