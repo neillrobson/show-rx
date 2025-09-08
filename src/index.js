@@ -139,41 +139,42 @@ function drawText(textConfig) {
 }
 
 function drawLabel(labelConfig) {
-  let symbol = labelConfig.shouldIgnoreSymbols
-    ? new DrawingSymbol({ text: labelConfig.text })
-    : drawingSymbolMap[labelConfig.text];
-  if (
-    (symbol || (symbol = new DrawingSymbol({ text: labelConfig.text })),
-    symbol.useImage)
-  ) {
-    const img = new Image(),
-      x = config.centerShapes
-        ? labelConfig.x - config.shapeSize / 2
-        : labelConfig.x;
-    (img.onload = (t) =>
+  let symbol = drawingSymbolMap[labelConfig.text];
+
+  if (!symbol || labelConfig.shouldIgnoreSymbols) {
+    symbol = new DrawingSymbol({ text: labelConfig.text });
+  }
+
+  if (symbol.useImage) {
+    const img = new Image();
+    const x = config.centerShapes
+      ? labelConfig.x - config.shapeSize / 2
+      : labelConfig.x;
+
+    img.onload = () =>
       ctx.drawImage(
         img,
         x,
         labelConfig.y - config.shapeSize - 1,
         config.shapeSize,
         config.shapeSize
-      )),
-      (img.src = symbol.imageUrl);
+      );
+    img.src = symbol.imageUrl;
   } else if (symbol.useText) {
     const o = ctx.fillStyle;
-    (ctx.fillStyle = symbol.color),
-      ctx.fillText(
-        symbol.text,
-        labelConfig.x + 1,
-        labelConfig.atEnd ? labelConfig.y + 15 : labelConfig.y - 2
-      ),
-      (ctx.fillStyle = o);
+    ctx.fillStyle = symbol.color;
+    ctx.fillText(
+      symbol.text,
+      labelConfig.x + 1,
+      labelConfig.atEnd ? labelConfig.y + 15 : labelConfig.y - 2
+    );
+    ctx.fillStyle = o;
   } else {
-    const o = ShapeRepository.get(symbol.shape),
-      n = config.centerShapes
-        ? labelConfig.x - config.shapeSize / 2
-        : labelConfig.x;
-    o && o.draw(ctx, n, labelConfig.y, symbol.color, symbol.strokeOnly);
+    const o = ShapeRepository.get(symbol.shape);
+    const n = config.centerShapes
+      ? labelConfig.x - config.shapeSize / 2
+      : labelConfig.x;
+    o?.draw(ctx, n, labelConfig.y, symbol.color, symbol.strokeOnly);
   }
 }
 
