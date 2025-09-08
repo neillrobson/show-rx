@@ -176,21 +176,24 @@ function drawLabel(labelConfig) {
     o && o.draw(ctx, n, labelConfig.y, symbol.color, symbol.strokeOnly);
   }
 }
-function drawTickMark(e, t, o) {
+
+function drawTickMark(x, y, color) {
   config.DEBUG &&
     logger.event(
-      `line ${e}/${t} --\x3e ${e}/${
+      `line ${x}/${y} --\x3e ${x}/${
         config.marginVertical + 2 * config.blockHeight
       }`
-    ),
-    ctx.beginPath(),
-    ctx.moveTo(e, t),
-    ctx.lineTo(e, t + 17),
-    (ctx.strokeStyle = o),
-    (ctx.lineWidth = 1),
-    ctx.stroke(),
-    ctx.closePath();
+    );
+
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.lineTo(x, y + 17);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.closePath();
 }
+
 function paint(drawTimeline) {
   if (!globals.canvas) return;
   config.autoExpandCanvasWidth &&
