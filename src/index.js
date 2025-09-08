@@ -17,7 +17,7 @@ let lineHeadings = ["A", "B"];
 let lineCount = lineHeadings.length - 1;
 let hasTerminated = false;
 const shapes = [...ShapeRepository.getRegisteredShapeNames()];
-let x = 0;
+let autoSymbolCount = 0;
 
 /** @type {Logger} */
 let logger = new Logger();
@@ -28,40 +28,47 @@ let renderedTextConfigs = [];
 let renderedDates = [];
 
 const DRAW_CONFIG = { atEnd: false, shouldIgnoreSymbols: false };
+
 function drawObject(objectConfig) {
-  (objectConfig = { ...DRAW_CONFIG, ...objectConfig }),
-    config.DEBUG &&
-      logger.event(`drawObject ${JSON.stringify(objectConfig.obj)}`);
-  const isArray =
-      objectConfig.obj &&
-      "Array" === objectConfig.obj.__proto__.constructor.name,
-    isBoolean = "boolean" == typeof objectConfig.obj,
-    isNumber = isFinite(objectConfig.obj) && !isBoolean;
-  if (
-    (config.DEBUG &&
-      logger.event(
-        `  isArray=${isArray}, isNumber=${isNumber}, isBoolean=${isBoolean}`
-      ),
-    isArray)
-  )
-    return (
-      objectConfig.obj.forEach((t) => {
-        (objectConfig.obj = `${t}`),
-          drawObject(objectConfig),
-          objCountPerLine[objectConfig.lineNr]++;
-      }),
-      void (objCountPerLine[objectConfig.lineNr] = 0)
+  objectConfig = { ...DRAW_CONFIG, ...objectConfig };
+
+  config.DEBUG &&
+    logger.event(`drawObject ${JSON.stringify(objectConfig.obj)}`);
+
+  const isArray = objectConfig.obj instanceof Array;
+  const isBoolean = "boolean" == typeof objectConfig.obj;
+  const isNumber = isFinite(objectConfig.obj) && !isBoolean;
+
+  config.DEBUG &&
+    logger.event(
+      `  isArray=${isArray}, isNumber=${isNumber}, isBoolean=${isBoolean}`
     );
-  isBoolean
-    ? (objectConfig.text = objectConfig.obj ? "true" : "false")
-    : isNumber
-    ? ((objectConfig.text = `${objectConfig.obj}`),
-      x > 0 &&
-        !objectConfig.shouldIgnoreSymbols &&
-        (objectConfig.text = "" + (+objectConfig.text % x)))
-    : (objectConfig.text = `${objectConfig.obj}`),
+
+  if (isArray) {
+    objectConfig.obj.forEach((t) => {
+      objectConfig.obj = `${t}`;
+      drawObject(objectConfig);
+      objCountPerLine[objectConfig.lineNr]++;
+    });
+
+    objCountPerLine[objectConfig.lineNr] = 0;
+  } else {
+    if (isBoolean) {
+      objectConfig.text = objectConfig.obj ? "true" : "false";
+    } else if (
+      isNumber &&
+      autoSymbolCount > 0 &&
+      !objectConfig.shouldIgnoreSymbols
+    ) {
+      objectConfig.text = `${objectConfig.obj % autoSymbolCount}`;
+    } else {
+      objectConfig.text = `${objectConfig.obj}`;
+    }
+
     drawText(objectConfig);
+  }
 }
+
 function drawText(textConfig) {
   (textConfig = { ...DRAW_CONFIG, ...textConfig }).time ||
     (textConfig.time = new Date());
@@ -559,10 +566,12 @@ export default {
     logger.event(t), drawText({ text: t, lineNr: e, atEnd: true });
   },
   useRandomSymbolsForNumbers: function (e = 100) {
-    x > 0 &&
+    autoSymbolCount > 0 &&
       0 === e &&
-      [...Array(x).keys()].forEach((e) => delete drawingSymbolMap[`${e}`]),
-      (x = e),
+      [...Array(autoSymbolCount).keys()].forEach(
+        (e) => delete drawingSymbolMap[`${e}`]
+      ),
+      (autoSymbolCount = e),
       [...Array(e).keys()].forEach((e) => {
         drawingSymbolMap[`${e}`] = new DrawingSymbol({
           text: `${e}`,

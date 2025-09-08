@@ -11,7 +11,6 @@ export default {
   autoExpandCanvasWidth: false,
   font: "italic 12px sans-serif",
   colors: [
-    "white",
     "black",
     "red",
     "blue",

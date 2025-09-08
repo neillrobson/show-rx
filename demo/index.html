@@ -19,9 +19,10 @@
         });
 
         RxJsVisualizer.prepareCanvas(['values']);
+        RxJsVisualizer.useRandomSymbolsForNumbers(5);
         RxJsVisualizer.startVisualize();
         RxJsVisualizer.createStreamFromArraySequence([10, 11, 12, 13, 14])
-            .subscribe(RxJsVisualizer.observerForLine(0, 'value', true));
+            .subscribe(RxJsVisualizer.observerForLine(0, 'value'));
     </script>
   </body>
 </html>
