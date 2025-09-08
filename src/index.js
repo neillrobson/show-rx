@@ -70,63 +70,74 @@ function drawObject(objectConfig) {
 }
 
 function drawText(textConfig) {
-  (textConfig = { ...DRAW_CONFIG, ...textConfig }).time ||
-    (textConfig.time = new Date());
+  textConfig = { ...DRAW_CONFIG, ...textConfig };
+  textConfig.time ||= new Date();
+
   let [x, y] = getDrawingCoords(textConfig.lineNr, textConfig.time);
-  renderedTextConfigs.push(textConfig),
-    x <= config.headerWidth ||
-      (objCountPerLine[textConfig.lineNr] > 0 &&
-        (x += objCountPerLine[textConfig.lineNr] * Shape.w),
-      (textConfig.x = x),
-      (textConfig.y = y),
-      config.DEBUG &&
-        logger.event(
-          `drawText ${textConfig.text} at lineNr ${textConfig.lineNr} --\x3e [${x}/${y}]`
-        ),
-      drawLabel(textConfig),
-      textConfig.text.startsWith("Error") && drawTickMark(x, y, "red"),
-      textConfig.text.startsWith("Complete") && drawTickMark(x, y, "orange"),
-      textConfig.text.startsWith("Complete") ||
-        textConfig.text.startsWith("Error") ||
-        0 !== objCountPerLine[textConfig.lineNr] ||
-        (function (x, y) {
-          config.DEBUG &&
-            logger.event(
-              `line ${x}/${y} --\x3e ${x}/${
-                config.marginVertical + 2 * config.blockHeight
-              }`
-            );
-          const tickHeight = 6;
-          ctx.beginPath(),
-            ctx.moveTo(x, y - tickHeight),
-            ctx.lineTo(x, y + tickHeight),
-            (ctx.strokeStyle = config.tickColor),
-            (ctx.lineWidth = 1),
-            ctx.stroke(),
-            ctx.closePath();
-        })(x, y),
-      textConfig.lineNr < lineCount &&
-        (function (e, t) {
-          config.DEBUG &&
-            logger.event(
-              `line ${e}/${t} --\x3e ${e}/${
-                config.marginVertical + 2 * config.blockHeight
-              }`
-            );
-          ctx.beginPath(),
-            ctx.moveTo(e, t),
-            ctx.lineTo(
-              e,
-              config.marginVertical + lineCount * config.blockHeight
-            ),
-            (ctx.strokeStyle = config.guidelineColor),
-            (ctx.lineWidth = 1),
-            ctx.setLineDash([3, 3]),
-            ctx.stroke(),
-            ctx.closePath(),
-            ctx.setLineDash([]);
-        })(x, y));
+
+  renderedTextConfigs.push(textConfig);
+
+  if (x <= config.headerWidth) return;
+
+  if (objCountPerLine[textConfig.lineNr] > 0) {
+    x += objCountPerLine[textConfig.lineNr] * Shape.w;
+  }
+
+  textConfig.x = x;
+  textConfig.y = y;
+
+  config.DEBUG &&
+    logger.event(
+      `drawText ${textConfig.text} at lineNr ${textConfig.lineNr} --\x3e [${x}/${y}]`
+    );
+
+  drawLabel(textConfig);
+  textConfig.text.startsWith("Error") && drawTickMark(x, y, "red");
+  textConfig.text.startsWith("Complete") && drawTickMark(x, y, "orange");
+
+  if (
+    textConfig.text.startsWith("Complete") ||
+    textConfig.text.startsWith("Error") ||
+    objCountPerLine[textConfig.lineNr] > 0
+  ) {
+    config.DEBUG &&
+      logger.event(
+        `line ${x}/${y} --\x3e ${x}/${
+          config.marginVertical + 2 * config.blockHeight
+        }`
+      );
+
+    const tickHeight = 6;
+
+    ctx.beginPath();
+    ctx.moveTo(x, y - tickHeight);
+    ctx.lineTo(x, y + tickHeight);
+    ctx.strokeStyle = config.tickColor;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.closePath();
+  }
+
+  if (textConfig.lineNr < lineCount) {
+    config.DEBUG &&
+      logger.event(
+        `line ${x}/${y} --\x3e ${x}/${
+          config.marginVertical + 2 * config.blockHeight
+        }`
+      );
+
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x, config.marginVertical + lineCount * config.blockHeight);
+    ctx.strokeStyle = config.guidelineColor;
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    ctx.stroke();
+    ctx.closePath();
+    ctx.setLineDash([]);
+  }
 }
+
 function drawLabel(labelConfig) {
   let symbol = labelConfig.shouldIgnoreSymbols
     ? new DrawingSymbol({ text: labelConfig.text })

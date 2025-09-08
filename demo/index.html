@@ -18,11 +18,13 @@
             logDivId: 'logs'
         });
 
-        RxJsVisualizer.prepareCanvas(['values']);
+        RxJsVisualizer.prepareCanvas(['symbols', 'numbers']);
         RxJsVisualizer.useRandomSymbolsForNumbers(5);
         RxJsVisualizer.startVisualize();
         RxJsVisualizer.createStreamFromArraySequence([10, 11, 12, 13, 14])
             .subscribe(RxJsVisualizer.observerForLine(0, 'value'));
+        RxJsVisualizer.createStreamFromArraySequence([10, 11, 12, 13, 14])
+            .subscribe(RxJsVisualizer.observerForLine(1, 'value', true));
     </script>
   </body>
 </html>
